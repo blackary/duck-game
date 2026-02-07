@@ -1,0 +1,1188 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Duck Ranch (Phaser Build)</title>
+  <style>
+    :root {
+      --ui-bg: rgba(10, 17, 22, 0.74);
+      --ui-line: rgba(197, 229, 239, 0.34);
+      --ui-text: #e8f5f8;
+      --warn: #ff9d91;
+      --ok: #a7f0c1;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #0c1519;
+      color: var(--ui-text);
+      font-family: "Avenir Next", "Trebuchet MS", sans-serif;
+    }
+
+    #game-wrap {
+      position: fixed;
+      inset: 0;
+    }
+
+    #overlay {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: linear-gradient(160deg, rgba(4, 9, 12, 0.82), rgba(11, 22, 28, 0.82));
+      z-index: 20;
+    }
+
+    .panel {
+      width: min(760px, 92vw);
+      border: 1px solid var(--ui-line);
+      background: var(--ui-bg);
+      border-radius: 14px;
+      padding: 16px;
+      backdrop-filter: blur(6px);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(1.2rem, 2.4vw, 1.9rem);
+    }
+
+    .small {
+      font-size: 0.86rem;
+      line-height: 1.45;
+      color: #bed8e0;
+    }
+
+    input[type="text"] {
+      font: inherit;
+      border: 1px solid #3f5a63;
+      background: rgba(6, 14, 18, 0.7);
+      color: #daf0f6;
+      border-radius: 8px;
+      padding: 6px 8px;
+      width: 170px;
+    }
+
+    button {
+      border: none;
+      border-radius: 9px;
+      padding: 9px 13px;
+      font-weight: 700;
+      background: linear-gradient(160deg, #9de7ff, #58c6e5);
+      color: #08232c;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    #hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    #topInfo {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      max-width: 560px;
+      padding: 8px 10px;
+      font-size: 0.84rem;
+      border-radius: 8px;
+      background: rgba(9, 18, 22, 0.52);
+      border: 1px solid rgba(187, 219, 228, 0.24);
+      line-height: 1.35;
+      white-space: pre-line;
+    }
+
+    #prompt {
+      position: absolute;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      padding: 7px 11px;
+      border-radius: 8px;
+      background: rgba(9, 18, 22, 0.64);
+      border: 1px solid rgba(187, 219, 228, 0.24);
+      font-size: 0.85rem;
+      display: none;
+      max-width: 72vw;
+      text-align: center;
+    }
+
+    #journal {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      width: min(430px, 92vw);
+      max-height: calc(100vh - 24px);
+      overflow: auto;
+      pointer-events: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(187, 219, 228, 0.24);
+      background: rgba(9, 18, 22, 0.9);
+      padding: 10px;
+      display: none;
+      z-index: 14;
+    }
+
+    #journal.visible { display: block; }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .pill {
+      border: 1px solid #3f5a63;
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .pill.low { color: var(--warn); }
+    .pill.good { color: var(--ok); }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .dance-list {
+      display: grid;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .dance {
+      width: 100%;
+      text-align: left;
+      background: rgba(6, 14, 18, 0.7);
+      color: #daf0f6;
+      border: 1px solid #3f5a63;
+      border-radius: 8px;
+      padding: 6px;
+      font-size: 0.81rem;
+      cursor: pointer;
+    }
+
+    .dance.sel {
+      border-color: #98e5fb;
+      box-shadow: inset 0 0 0 1px rgba(152, 229, 251, 0.45);
+    }
+  </style>
+</head>
+<body>
+  <div id="game-wrap"></div>
+
+  <div id="hud">
+    <div id="topInfo"></div>
+    <div id="prompt"></div>
+  </div>
+
+  <section id="journal">
+    <strong>Duck Journal (J)</strong>
+    <div class="actions" style="margin-top: 8px;">
+      <input id="duckName" type="text" maxlength="22" placeholder="Duck name" />
+      <button id="nameBtn">Set Name</button>
+    </div>
+    <div id="stats" class="stat-grid"></div>
+    <div id="quest" class="small"></div>
+
+    <div class="actions">
+      <button id="teachBtn">Teach Selected</button>
+      <button id="showBtn">Perform Selected</button>
+      <button id="recordBtn">Record Custom (R)</button>
+    </div>
+
+    <div class="small">Dance keys are <strong>A/S/D/F</strong> (F = air twirl).</div>
+    <div id="dances" class="dance-list"></div>
+  </section>
+
+  <div id="overlay">
+    <div class="panel">
+      <h1>Duck Ranch (Engine Upgrade)</h1>
+      <div class="small">
+        Migrated to Phaser for cleaner movement, physics, collisions, and rendering.<br>
+        Move: <strong>A/D</strong> | Jump: <strong>Space</strong> | Sprint: <strong>Shift</strong><br>
+        Interact: <strong>E</strong> | Drag and throw props with mouse<br>
+        Repair broken prop: <strong>K</strong> | Journal: <strong>J</strong> | Record dance: <strong>R</strong>
+      </div>
+      <button id="start">Start</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+  <script>
+    const SAVE_KEY = "duck_ranch_phaser_save_v1";
+
+    const ui = {
+      overlay: document.getElementById("overlay"),
+      start: document.getElementById("start"),
+      topInfo: document.getElementById("topInfo"),
+      prompt: document.getElementById("prompt"),
+      journal: document.getElementById("journal"),
+      stats: document.getElementById("stats"),
+      quest: document.getElementById("quest"),
+      dances: document.getElementById("dances"),
+      teachBtn: document.getElementById("teachBtn"),
+      showBtn: document.getElementById("showBtn"),
+      recordBtn: document.getElementById("recordBtn"),
+      duckName: document.getElementById("duckName"),
+      nameBtn: document.getElementById("nameBtn")
+    };
+
+    const gameState = {
+      coins: 25,
+      tutorial: 0,
+      journalOpen: false,
+      selectedDance: "premade_1",
+      recording: false,
+      recordingBuffer: "",
+      stagedMode: null,
+      stagedTarget: "",
+      stagedBuffer: "",
+      stagedEndsAt: 0,
+      stickyText: "",
+      hatched: false,
+      eggCrackAt: 0,
+      duck: {
+        name: "Pip",
+        age: "baby",
+        trust: 38,
+        hunger: 78,
+        cleanliness: 76,
+        sleep: 82,
+        fun: 63,
+        knownDances: ["premade_1"],
+        customDances: [],
+        mood: "curious"
+      },
+      quest: {
+        stageUnlocked: false,
+        active: false,
+        req: { wood: 2, cloth: 2, lights: 2 },
+        done: { wood: 0, cloth: 0, lights: 0 }
+      }
+    };
+
+    const preMade = [
+      { id: "premade_1", name: "Puddle Hop", seq: "ASDF" },
+      { id: "premade_2", name: "Wing Wave", seq: "AASDFA" },
+      { id: "premade_3", name: "Feather Flip", seq: "ASAAADF" },
+      { id: "premade_4", name: "Barn Bounce", seq: "DDAASFF" },
+      { id: "premade_5", name: "Meadow Spin", seq: "ASDFASD" },
+      { id: "premade_6", name: "Pond Pulse", seq: "SAFDASAF" },
+      { id: "premade_7", name: "Quack Step", seq: "AASDDFAA" },
+      { id: "premade_8", name: "Twirl Drift", seq: "SDFAFDSA" },
+      { id: "premade_9", name: "Rush Flutter", seq: "ASDFFASD" },
+      { id: "premade_10", name: "Sky Twirl", seq: "ASAAADFASD" }
+    ];
+
+    function allDances() {
+      return [...preMade, ...gameState.duck.customDances];
+    }
+
+    function danceById(id) {
+      return allDances().find((d) => d.id === id) || null;
+    }
+
+    function clamp(v, min, max) {
+      return Math.max(min, Math.min(max, v));
+    }
+
+    function duckNeedsAvg() {
+      const d = gameState.duck;
+      return (d.hunger + d.cleanliness + d.sleep + d.fun) / 4;
+    }
+
+    function saveGame(scene) {
+      const data = {
+        gameState,
+        player: scene ? { x: scene.player.x, y: scene.player.y } : null,
+        duckPos: scene ? { x: scene.duck.x, y: scene.duck.y } : null,
+        props: scene
+          ? scene.props.map((p) => ({
+              id: p.getData("id"),
+              x: p.x,
+              y: p.y,
+              vx: p.body.velocity.x,
+              vy: p.body.velocity.y,
+              broken: p.getData("broken"),
+              material: p.getData("material")
+            }))
+          : []
+      };
+      localStorage.setItem(SAVE_KEY, JSON.stringify(data));
+    }
+
+    function loadGame() {
+      const raw = localStorage.getItem(SAVE_KEY);
+      if (!raw) return null;
+      try {
+        return JSON.parse(raw);
+      } catch {
+        return null;
+      }
+    }
+
+    class RanchScene extends Phaser.Scene {
+      constructor() {
+        super("ranch");
+        this.worldWidth = 3800;
+        this.worldHeight = 980;
+        this.groundY = 860;
+        this.stageRect = new Phaser.Geom.Rectangle(3520, 805, 220, 55);
+        this.draggedProp = null;
+        this.dragPrev = { x: 0, y: 0, t: 0 };
+        this.interactCooldown = 0;
+        this.promptText = "";
+        this.zoneName = "Pond";
+        this.journalDirty = true;
+        this.lastHudSyncAt = 0;
+        this.footstepTimer = 0;
+      }
+
+      createTextures() {
+        const g = this.make.graphics({ x: 0, y: 0, add: false });
+
+        g.clear();
+        g.fillStyle(0xd2dde3, 1);
+        g.fillRoundedRect(0, 0, 40, 96, 8);
+        g.fillStyle(0x8aa2ab, 1);
+        g.fillRoundedRect(5, 5, 30, 42, 6);
+        g.generateTexture("tx_player", 40, 96);
+
+        g.clear();
+        g.fillStyle(0xf6d75f, 1);
+        g.fillEllipse(30, 24, 60, 44);
+        g.fillStyle(0xffe98f, 1);
+        g.fillEllipse(44, 12, 24, 20);
+        g.fillStyle(0x1f2a31, 1);
+        g.fillCircle(49, 10, 3);
+        g.fillStyle(0xff9a4b, 1);
+        g.fillEllipse(55, 14, 12, 8);
+        g.generateTexture("tx_duck_baby", 60, 44);
+
+        g.clear();
+        g.fillStyle(0xf6d75f, 1);
+        g.fillEllipse(36, 28, 72, 54);
+        g.fillStyle(0xffe98f, 1);
+        g.fillEllipse(54, 14, 28, 24);
+        g.fillStyle(0x1f2a31, 1);
+        g.fillCircle(59, 12, 3);
+        g.fillStyle(0xff9a4b, 1);
+        g.fillEllipse(67, 16, 14, 9);
+        g.generateTexture("tx_duck_grown", 72, 54);
+
+        g.clear();
+        g.fillStyle(0xf6f0e4, 1);
+        g.fillEllipse(26, 32, 48, 60);
+        g.lineStyle(2, 0xd9cbb5, 1);
+        g.strokeEllipse(26, 32, 48, 60);
+        g.generateTexture("tx_egg", 52, 64);
+
+        const propTexture = (key, w, h, body, top) => {
+          g.clear();
+          g.fillStyle(body, 1);
+          g.fillRoundedRect(0, 0, w, h, 4);
+          g.fillStyle(top, 1);
+          g.fillRoundedRect(2, 2, w - 4, Math.max(5, h * 0.35), 3);
+          g.generateTexture(key, w, h);
+        };
+
+        propTexture("tx_ball", 34, 34, 0xe96a63, 0xf8b18a);
+        propTexture("tx_bucket", 44, 44, 0x5a95c6, 0x8bc0ec);
+        propTexture("tx_hay", 66, 52, 0xccb05b, 0xead17f);
+        propTexture("tx_brush", 28, 30, 0xb78655, 0xebc89c);
+        propTexture("tx_toyduck", 38, 34, 0xffcf58, 0xffad55);
+        propTexture("tx_wood", 56, 24, 0xa1774e, 0xc99f73);
+        propTexture("tx_cloth", 46, 32, 0x6f9bb0, 0x97c8db);
+        propTexture("tx_lights", 50, 36, 0xccb878, 0xf3dda5);
+      }
+
+      createWorld() {
+        this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
+
+        const skyTop = this.add.rectangle(this.worldWidth / 2, 180, this.worldWidth, 360, 0x92d1ea);
+        skyTop.setScrollFactor(0.2);
+        const skyMid = this.add.rectangle(this.worldWidth / 2, 420, this.worldWidth, 360, 0x7ebfce);
+        skyMid.setScrollFactor(0.4);
+        const skyLow = this.add.rectangle(this.worldWidth / 2, 650, this.worldWidth, 300, 0x6aab8d);
+        skyLow.setScrollFactor(0.65);
+
+        const cloud = (x, y, s) => {
+          const g = this.add.graphics({ x, y });
+          g.fillStyle(0xeef7fb, 0.85);
+          g.fillCircle(0, 0, 26 * s);
+          g.fillCircle(22 * s, -8 * s, 20 * s);
+          g.fillCircle(43 * s, 0, 24 * s);
+          g.fillEllipse(22 * s, 10 * s, 84 * s, 28 * s);
+          g.setScrollFactor(0.18);
+        };
+        cloud(320, 150, 1);
+        cloud(1280, 110, 0.9);
+        cloud(2310, 170, 1.1);
+        cloud(3320, 130, 0.95);
+
+        this.zoneGfx = this.add.graphics();
+        const zones = [
+          [0, 1260, 0x61a0bd],
+          [1260, 2520, 0xb1825c],
+          [2520, 3800, 0x6ea96a]
+        ];
+        zones.forEach(([x0, x1, c]) => {
+          this.zoneGfx.fillStyle(c, 0.2);
+          this.zoneGfx.fillRect(x0, this.groundY - 260, x1 - x0, 260);
+        });
+
+        this.ground = this.add.rectangle(this.worldWidth / 2, this.groundY + 6, this.worldWidth, 18, 0x5f7d48, 0.001);
+        this.physics.add.existing(this.ground, true);
+
+        this.platforms = this.physics.add.staticGroup();
+        [
+          [360, 770, 360],
+          [1120, 790, 300],
+          [1840, 760, 340],
+          [2470, 790, 280],
+          [3080, 770, 320]
+        ].forEach(([x, y, w]) => {
+          const r = this.add.rectangle(x + w / 2, y + 10, w, 20, 0x647f4e);
+          this.physics.add.existing(r, true);
+          this.platforms.add(r);
+        });
+
+        this.add.rectangle(580, this.groundY - 20, 1040, 40, 0x4d8dac, 0.72);
+
+        this.add.rectangle(1505, this.groundY - 95, 250, 190, 0x86573a, 0.85);
+        this.add.triangle(1505, this.groundY - 235, 0, 100, 145, 0, 290, 100, 0x86573a, 0.85);
+
+        this.stageVisual = this.add.rectangle(3630, 832, 220, 55, 0xc18f58, 0.35);
+      }
+
+      createActors(saved) {
+        this.player = this.physics.add.sprite(240, 760, "tx_player");
+        this.player.setCollideWorldBounds(true);
+        this.player.setDragX(1200);
+        this.player.setMaxVelocity(620, 980);
+
+        this.duck = this.physics.add.sprite(350, 806, "tx_duck_baby");
+        this.duck.setCollideWorldBounds(true);
+        this.duck.setDragX(1000);
+        this.duck.setMaxVelocity(240, 880);
+
+        this.egg = this.add.sprite(300, 820, "tx_egg");
+
+        if (saved?.player) {
+          this.player.setPosition(saved.player.x, saved.player.y);
+        }
+        if (saved?.duckPos) {
+          this.duck.setPosition(saved.duckPos.x, saved.duckPos.y);
+        }
+
+        this.physics.add.collider(this.player, this.ground);
+        this.physics.add.collider(this.player, this.platforms);
+        this.physics.add.collider(this.duck, this.ground);
+        this.physics.add.collider(this.duck, this.platforms);
+      }
+
+      spawnProps(saved) {
+        this.props = [];
+        const base = [
+          ["toy_ball", "tx_ball", 700, 760, true, ""],
+          ["bucket", "tx_bucket", 1330, 760, true, ""],
+          ["hay_bale", "tx_hay", 1710, 752, false, ""],
+          ["brush", "tx_brush", 2870, 774, true, ""],
+          ["toy_duck", "tx_toyduck", 3290, 770, true, ""],
+          ["wood_1", "tx_wood", 1480, 770, false, "wood"],
+          ["wood_2", "tx_wood", 2090, 770, false, "wood"],
+          ["cloth_1", "tx_cloth", 620, 772, true, "cloth"],
+          ["cloth_2", "tx_cloth", 2600, 772, true, "cloth"],
+          ["lights_1", "tx_lights", 940, 768, true, "lights"],
+          ["lights_2", "tx_lights", 2960, 768, true, "lights"]
+        ];
+
+        base.forEach(([id, tx, x, y, fragile, material]) => {
+          const s = this.physics.add.sprite(x, y, tx);
+          s.setData("id", id);
+          s.setData("fragile", fragile);
+          s.setData("broken", false);
+          s.setData("material", material);
+          s.setData("dragging", false);
+          s.setData("prevVy", 0);
+          s.setCollideWorldBounds(true);
+          s.setBounce(0.12, 0.2);
+          s.setDrag(120, 0);
+          s.setInteractive({ useHandCursor: true, draggable: true });
+          this.input.setDraggable(s);
+
+          this.physics.add.collider(s, this.ground);
+          this.physics.add.collider(s, this.platforms);
+          this.physics.add.collider(s, this.player, () => {}, null, this);
+
+          this.props.push(s);
+        });
+
+        if (saved?.props) {
+          saved.props.forEach((sp) => {
+            const p = this.props.find((x) => x.getData("id") === sp.id);
+            if (!p) return;
+            p.setPosition(sp.x, sp.y);
+            p.setVelocity(sp.vx, sp.vy);
+            p.setData("broken", Boolean(sp.broken));
+            if (sp.material !== undefined) p.setData("material", sp.material);
+            if (p.getData("broken")) p.setTint(0x6f514a);
+          });
+        }
+      }
+
+      createStations() {
+        this.stations = {
+          feed: { x: 1420, y: 825, r: 46, cost: 3, key: "hunger", gain: 24, color: 0xe1bd6c, label: "Feed" },
+          wash: { x: 520, y: 825, r: 46, cost: 3, key: "cleanliness", gain: 24, color: 0x6fc0df, label: "Wash" },
+          sleep: { x: 1970, y: 825, r: 46, cost: 2, key: "sleep", gain: 24, color: 0xb79bdb, label: "Sleep" },
+          fun: { x: 3200, y: 825, r: 46, cost: 3, key: "fun", gain: 24, color: 0x7edb8e, label: "Fun" }
+        };
+
+        Object.values(this.stations).forEach((st) => {
+          const e = this.add.ellipse(st.x, st.y, st.r * 2, st.r * 0.9, st.color, 0.9);
+          const t = this.add.text(st.x, st.y - st.r * 0.9, st.label, { font: "18px Avenir Next", color: "#ecf8fd" }).setOrigin(0.5);
+          st.visual = e;
+          st.text = t;
+        });
+      }
+
+      createAudio() {
+        this.ambient = new Audio("assets/sounds/chirp.wav");
+        this.music = new Audio("assets/sounds/music.wav");
+        this.ambient.loop = true;
+        this.music.loop = true;
+        this.ambient.volume = 0.16;
+        this.music.volume = 0.08;
+      }
+
+      sfx(name, volume = 0.3, rate = 1) {
+        const src = new Audio(name === "quack" ? "assets/sounds/quack.wav" : "assets/sounds/hatch.wav");
+        src.volume = volume;
+        src.playbackRate = rate;
+        src.play().catch(() => {});
+      }
+
+      create(saved) {
+        this.createTextures();
+        this.createWorld();
+        this.createActors(saved);
+        this.spawnProps(saved);
+        this.createStations();
+        this.createAudio();
+
+        this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
+        this.cameras.main.startFollow(this.player, true, 0.12, 0.12, -200, 120);
+
+        this.keys = this.input.keyboard.addKeys({
+          left: "A",
+          right: "D",
+          jump: "SPACE",
+          sprint: "SHIFT",
+          interact: "E",
+          repair: "K",
+          journal: "J",
+          record: "R",
+          aDance: "A",
+          sDance: "S",
+          dDance: "D",
+          fDance: "F"
+        });
+
+        this.input.on("dragstart", (_, obj, pointer) => {
+          if (obj.getData("broken")) return;
+          this.draggedProp = obj;
+          obj.setData("dragging", true);
+          obj.body.allowGravity = false;
+          obj.setVelocity(0, 0);
+          this.dragPrev = { x: pointer.worldX, y: pointer.worldY, t: this.time.now };
+        });
+
+        this.input.on("drag", (_, obj, x, y, pointer) => {
+          if (obj !== this.draggedProp) return;
+          obj.setPosition(x, y);
+          const dt = Math.max(16, this.time.now - this.dragPrev.t);
+          obj.setData("dragVelX", (pointer.worldX - this.dragPrev.x) / (dt / 1000));
+          obj.setData("dragVelY", (pointer.worldY - this.dragPrev.y) / (dt / 1000));
+          this.dragPrev = { x: pointer.worldX, y: pointer.worldY, t: this.time.now };
+        });
+
+        this.input.on("dragend", (_, obj) => {
+          obj.setData("dragging", false);
+          obj.body.allowGravity = true;
+          const vx = Phaser.Math.Clamp(obj.getData("dragVelX") || 0, -820, 820);
+          const vy = Phaser.Math.Clamp(obj.getData("dragVelY") || 0, -980, 980);
+          obj.setVelocity(vx, vy);
+          this.draggedProp = null;
+          this.sfx("impact", 0.08, 1.2);
+        });
+
+        if (saved?.gameState) {
+          Object.assign(gameState, saved.gameState);
+          if (gameState.hatched) {
+            this.egg.setVisible(false);
+          }
+        }
+
+        this.updateDuckTexture();
+        this.syncUi(true);
+        this.ambient.play().catch(() => {});
+        this.music.play().catch(() => {});
+      }
+
+      updateDuckTexture() {
+        if (gameState.duck.age === "grown") {
+          this.duck.setTexture("tx_duck_grown");
+          this.duck.body.setSize(72, 54, true);
+        } else {
+          this.duck.setTexture("tx_duck_baby");
+          this.duck.body.setSize(60, 44, true);
+        }
+      }
+
+      handlePlayer(dt) {
+        const dir = (this.keys.right.isDown ? 1 : 0) - (this.keys.left.isDown ? 1 : 0);
+        const speed = this.keys.sprint.isDown ? 460 : 330;
+        this.player.setVelocityX(dir * speed);
+        if (dir !== 0) this.player.setFlipX(dir < 0);
+
+        const onGround = this.player.body.blocked.down || this.player.body.touching.down;
+        if (Phaser.Input.Keyboard.JustDown(this.keys.jump) && onGround) {
+          this.player.setVelocityY(-760);
+          this.sfx("impact", 0.08, 1.5);
+        }
+
+        if (gameState.tutorial < 1 && Math.abs(this.player.body.velocity.x) > 20) {
+          gameState.tutorial = 1;
+        }
+
+        const moving = Math.abs(this.player.body.velocity.x) > 40;
+        const grounded = this.player.body.blocked.down || this.player.body.touching.down;
+        if (moving && grounded) {
+          this.footstepTimer += dt;
+          if (this.footstepTimer > 0.32) {
+            this.sfx("impact", 0.035, 1.65 + Math.random() * 0.22);
+            this.footstepTimer = 0;
+          }
+        } else {
+          this.footstepTimer = 0;
+        }
+      }
+
+      updateDuckNeeds(dt) {
+        const d = gameState.duck;
+        const dec = dt * 0.55;
+        d.hunger = clamp(d.hunger - dec * 0.9, 0, 100);
+        d.cleanliness = clamp(d.cleanliness - dec * 0.68, 0, 100);
+        d.sleep = clamp(d.sleep - dec * 0.62, 0, 100);
+        d.fun = clamp(d.fun - dec * 0.82, 0, 100);
+
+        const avg = duckNeedsAvg();
+        const trustScale = d.trust > 70 ? 0.1 : d.trust > 50 ? 0.35 : 0.7;
+        if (avg < 35) d.trust = clamp(d.trust - dec * 0.7 * trustScale, 0, 100);
+        if (avg > 67) d.trust = clamp(d.trust + dec * 0.42, 0, 100);
+
+        if (d.age === "baby" && (d.trust > 62 || d.knownDances.length >= 4)) {
+          d.age = "grown";
+          this.updateDuckTexture();
+        }
+      }
+
+      updateDuckAI(dt) {
+        if (!gameState.hatched) return;
+
+        this.duckAiTimer = (this.duckAiTimer || 0) - dt;
+        if (this.duckAiTimer <= 0) {
+          const d = gameState.duck;
+          const needs = [
+            { k: "hunger", v: d.hunger, x: this.stations.feed.x },
+            { k: "cleanliness", v: d.cleanliness, x: this.stations.wash.x },
+            { k: "sleep", v: d.sleep, x: this.stations.sleep.x },
+            { k: "fun", v: d.fun, x: this.stations.fun.x }
+          ].sort((a, b) => a.v - b.v);
+          if (needs[0].v < 52) {
+            this.duckTargetX = needs[0].x;
+            d.mood = needs[0].k;
+          } else {
+            this.duckTargetX = Phaser.Math.Between(260, this.worldWidth - 260);
+            d.mood = "wandering";
+          }
+          this.duckAiTimer = 2 + Math.random() * 3;
+        }
+
+        const target = this.duckTargetX ?? this.duck.x;
+        const dir = Math.sign(target - this.duck.x);
+        this.duck.setVelocityX(dir * 160);
+        this.duck.setFlipX(dir < 0);
+      }
+
+      updateProps() {
+        this.props.forEach((p) => {
+          const prevVy = p.getData("prevVy") || 0;
+          p.setData("prevVy", p.body.velocity.y);
+
+          if (!p.getData("dragging") && !p.getData("broken")) {
+            const hitGround = p.body.blocked.down || p.body.touching.down;
+            if (p.getData("fragile") && hitGround && prevVy > 700) {
+              p.setData("broken", true);
+              p.setTint(0x6f514a);
+              p.setVelocity(0, 0);
+              this.sfx("quack", 0.2, 0.74);
+            }
+          }
+
+          if (gameState.quest.active && !gameState.quest.stageUnlocked && !p.getData("broken")) {
+            const m = p.getData("material");
+            if (!m) return;
+            if (Phaser.Geom.Rectangle.Overlaps(this.stageRect, p.getBounds())) {
+              if (gameState.quest.done[m] < gameState.quest.req[m]) {
+                gameState.quest.done[m] += 1;
+                p.setData("material", "");
+                p.setData("broken", true);
+                p.setTint(0x6f514a);
+                gameState.coins += 4;
+                this.sfx("quack", 0.22, 1.08);
+              }
+            }
+          }
+        });
+
+        const q = gameState.quest;
+        if (!q.stageUnlocked && q.done.wood >= 2 && q.done.cloth >= 2 && q.done.lights >= 2) {
+          q.stageUnlocked = true;
+          q.active = false;
+          gameState.coins += 30;
+          this.stageVisual.setFillStyle(0x70ce91, 0.42);
+          this.sfx("quack", 0.32, 0.92);
+        }
+      }
+
+      nearestStation() {
+        const px = this.player.x;
+        const py = this.player.y;
+        let best = null;
+        Object.values(this.stations).forEach((st) => {
+          const d = Phaser.Math.Distance.Between(px, py, st.x, st.y);
+          if (d < st.r + 52 && (!best || d < best.d)) {
+            best = { st, d };
+          }
+        });
+        return best;
+      }
+
+      doInteraction() {
+        if (this.interactCooldown > 0) return;
+        this.interactCooldown = 0.15;
+
+        if (!gameState.hatched && Phaser.Math.Distance.Between(this.player.x, this.player.y, this.egg.x, this.egg.y) < 90) {
+          gameState.hatched = true;
+          gameState.eggCrackAt = this.time.now;
+          this.egg.setVisible(false);
+          this.duck.setPosition(this.egg.x + 44, this.groundY - this.duck.displayHeight / 2);
+          this.sfx("impact", 0.22, 1.05);
+          this.sfx("quack", 0.28, 1.2);
+          return;
+        }
+
+        if (!gameState.hatched) return;
+
+        const stationHit = this.nearestStation();
+        if (stationHit) {
+          const st = stationHit.st;
+          if (gameState.coins >= st.cost) {
+            gameState.coins -= st.cost;
+            const d = gameState.duck;
+            d[st.key] = clamp(d[st.key] + st.gain, 0, 100);
+            d.trust = clamp(d.trust + 2, 0, 100);
+            if (gameState.tutorial < 3) gameState.tutorial = 3;
+            this.sfx("quack", 0.2, 1.12);
+          }
+          return;
+        }
+
+        if (Phaser.Math.Distance.Between(this.player.x, this.player.y, this.duck.x, this.duck.y) < 100) {
+          const d = gameState.duck;
+          d.trust = clamp(d.trust + 1.2, 0, 100);
+          d.fun = clamp(d.fun + 1.5, 0, 100);
+          this.sfx("quack", 0.2, 1.06);
+          return;
+        }
+
+        const nearStage = Phaser.Geom.Rectangle.Contains(this.stageRect, this.player.x, this.player.y);
+        if (nearStage && gameState.quest.stageUnlocked) {
+          this.startDanceInput(gameState.selectedDance, "show");
+        }
+      }
+
+      repairNearestBroken() {
+        let best = null;
+        this.props.forEach((p) => {
+          if (!p.getData("broken")) return;
+          const d = Phaser.Math.Distance.Between(this.player.x, this.player.y, p.x, p.y);
+          if (d < 130 && (!best || d < best.d)) best = { p, d };
+        });
+
+        if (!best || gameState.coins < 4) return;
+        gameState.coins -= 4;
+        best.p.setData("broken", false);
+        best.p.clearTint();
+        this.sfx("impact", 0.1, 1.45);
+      }
+
+      startDanceInput(id, mode) {
+        const d = danceById(id);
+        if (!d || !gameState.duck.knownDances.includes(d.id)) return;
+        gameState.stagedMode = mode;
+        gameState.stagedTarget = d.seq;
+        gameState.stagedBuffer = "";
+        gameState.stagedEndsAt = this.time.now + 6800;
+        this.sfx("quack", 0.2, 1.1);
+      }
+
+      resolveDanceInput() {
+        if (!gameState.stagedMode) return;
+        const target = gameState.stagedTarget;
+        const input = gameState.stagedBuffer;
+
+        let correct = 0;
+        for (let i = 0; i < Math.min(target.length, input.length); i += 1) {
+          if (target[i] === input[i]) correct += 1;
+        }
+
+        const accuracy = target.length ? correct / target.length : 0;
+        const mood = duckNeedsAvg() / 100;
+        const trust = gameState.duck.trust / 100;
+        const score = Math.round((accuracy * 0.7 + (mood * 0.6 + trust * 0.4) * 0.3) * 100);
+
+        if (gameState.stagedMode === "show") {
+          gameState.coins += Math.max(4, Math.round(score / 7));
+        }
+
+        const d = gameState.duck;
+        d.fun = clamp(d.fun + 7, 0, 100);
+        d.sleep = clamp(d.sleep - 5, 0, 100);
+        d.hunger = clamp(d.hunger - 3, 0, 100);
+
+        gameState.stickyText = `${gameState.stagedMode === "show" ? "Show" : "Practice"} score ${score} (${input || "-"}/${target})`;
+        gameState.stagedMode = null;
+        gameState.stagedTarget = "";
+        gameState.stagedBuffer = "";
+        gameState.stagedEndsAt = 0;
+        this.sfx("quack", 0.3, 0.94 + score / 180);
+      }
+
+      teachSelected() {
+        const d = danceById(gameState.selectedDance);
+        if (!d || gameState.duck.knownDances.includes(d.id)) return;
+
+        const readiness = duckNeedsAvg() * 0.7 + gameState.duck.trust * 0.3;
+        const chance = clamp(readiness / 100, 0.22, 0.95);
+
+        if (Math.random() < chance) {
+          gameState.duck.knownDances.push(d.id);
+          gameState.duck.fun = clamp(gameState.duck.fun + 5, 0, 100);
+          gameState.duck.sleep = clamp(gameState.duck.sleep - 2, 0, 100);
+          gameState.coins += 6;
+          this.sfx("quack", 0.28, 1.05);
+        } else {
+          gameState.duck.fun = clamp(gameState.duck.fun - 2, 0, 100);
+          gameState.duck.sleep = clamp(gameState.duck.sleep - 4, 0, 100);
+          this.sfx("quack", 0.2, 0.8);
+        }
+
+        if (!gameState.quest.stageUnlocked && gameState.duck.knownDances.length >= 3) {
+          gameState.quest.active = true;
+        }
+
+        this.journalDirty = true;
+        this.syncUi(true);
+      }
+
+      toggleRecord() {
+        gameState.recording = !gameState.recording;
+        if (!gameState.recording && gameState.recordingBuffer.length > 0) {
+          const id = `custom_${Date.now()}`;
+          gameState.duck.customDances.push({ id, name: `Custom ${gameState.duck.customDances.length + 1}`, seq: gameState.recordingBuffer });
+          if (!gameState.duck.knownDances.includes(id)) gameState.duck.knownDances.push(id);
+          gameState.selectedDance = id;
+          gameState.recordingBuffer = "";
+          this.sfx("quack", 0.24, 1.06);
+        }
+        this.journalDirty = true;
+        this.syncUi(true);
+      }
+
+      onDanceKey(letter) {
+        if (gameState.recording && gameState.recordingBuffer.length < 18) {
+          gameState.recordingBuffer += letter;
+          this.sfx("quack", 0.1, 1.24 + Math.random() * 0.16);
+          this.journalDirty = true;
+          this.syncUi(true);
+          return;
+        }
+
+        if (gameState.stagedMode && gameState.stagedBuffer.length < 24) {
+          gameState.stagedBuffer += letter;
+          this.sfx("quack", 0.1, 1.24 + Math.random() * 0.16);
+        }
+      }
+
+      syncUi(force = false) {
+        if (!force && this.time.now - this.lastHudSyncAt < 90) {
+          return;
+        }
+        this.lastHudSyncAt = this.time.now;
+
+        const d = gameState.duck;
+        const zone = this.player.x < 1260 ? "Pond" : this.player.x < 2520 ? "Barn" : "Meadow";
+        this.zoneName = zone;
+
+        ui.topInfo.textContent = [
+          `${d.name} | Zone: ${zone} | Coins: ${gameState.coins} | FPS: ${(this.game.loop.actualFps || 0).toFixed(0)}`,
+          `Trust ${Math.round(d.trust)} | Hunger ${Math.round(d.hunger)} | Clean ${Math.round(d.cleanliness)} | Sleep ${Math.round(d.sleep)} | Fun ${Math.round(d.fun)}`,
+          `Dances ${d.knownDances.length}/10+ | Tutorial ${gameState.tutorial}/3`,
+          gameState.stickyText
+        ].join("\n");
+
+        const prompt = this.computePrompt();
+        if (prompt) {
+          ui.prompt.style.display = "block";
+          ui.prompt.textContent = prompt;
+        } else {
+          ui.prompt.style.display = "none";
+        }
+
+        if (!gameState.journalOpen && !force) {
+          return;
+        }
+        if (!this.journalDirty && !force) {
+          return;
+        }
+        this.journalDirty = false;
+
+        ui.duckName.value = d.name || "";
+        const pill = (label, val, low = 35) => `<div class="pill ${val <= low ? "low" : "good"}">${label}: ${Math.round(val)}</div>`;
+        ui.stats.innerHTML = [
+          `<div class="pill">Coins: ${gameState.coins}</div>`,
+          `<div class="pill">Known Dances: ${d.knownDances.length}</div>`,
+          pill("Trust", d.trust, 25),
+          pill("Hunger", d.hunger),
+          pill("Clean", d.cleanliness),
+          pill("Sleep", d.sleep),
+          pill("Fun", d.fun)
+        ].join("");
+
+        if (!gameState.quest.stageUnlocked && !gameState.quest.active) {
+          ui.quest.textContent = "Show Stage locked: teach duck at least 3 dances.";
+        } else if (gameState.quest.active) {
+          ui.quest.textContent = `Stage Quest: wood ${gameState.quest.done.wood}/2, cloth ${gameState.quest.done.cloth}/2, lights ${gameState.quest.done.lights}/2.`;
+        } else {
+          ui.quest.textContent = "Show Stage unlocked.";
+        }
+
+        ui.dances.innerHTML = allDances().map((dance) => {
+          const sel = dance.id === gameState.selectedDance ? "sel" : "";
+          const known = d.knownDances.includes(dance.id) ? "Learned" : "Not learned";
+          const source = dance.id.startsWith("premade_") ? "Pre-made" : "Custom";
+          return `<button class="dance ${sel}" data-id="${dance.id}"><strong>${dance.name}</strong><br>${dance.seq}<br><span class="small">${source} • ${known}</span></button>`;
+        }).join("");
+
+        ui.recordBtn.textContent = gameState.recording ? `Stop Recording (R): ${gameState.recordingBuffer}` : "Record Custom (R)";
+
+        ui.dances.querySelectorAll("button[data-id]").forEach((btn) => {
+          btn.onclick = () => {
+            gameState.selectedDance = btn.dataset.id;
+            this.journalDirty = true;
+            this.syncUi(true);
+          };
+        });
+      }
+
+      computePrompt() {
+        if (gameState.stagedMode) {
+          return `Enter dance sequence with A/S/D/F. Current: ${gameState.stagedBuffer}`;
+        }
+
+        if (!gameState.hatched && Phaser.Math.Distance.Between(this.player.x, this.player.y, this.egg.x, this.egg.y) < 90) {
+          return "Press E to hatch egg.";
+        }
+
+        if (this.draggedProp) {
+          return `Dragging ${this.draggedProp.getData("id")}. Release mouse to drop.`;
+        }
+
+        const p = this.player;
+        if (gameState.hatched && Phaser.Math.Distance.Between(p.x, p.y, this.duck.x, this.duck.y) < 100) {
+          return "Press E to bond with duck.";
+        }
+
+        const stationHit = this.nearestStation();
+        if (stationHit) {
+          return `Press E to ${stationHit.st.label.toLowerCase()} duck (-${stationHit.st.cost} coins).`;
+        }
+
+        const nearStage = Phaser.Geom.Rectangle.Contains(this.stageRect, p.x, p.y);
+        if (gameState.quest.stageUnlocked && nearStage) {
+          return "Press E to perform selected dance.";
+        }
+
+        if (gameState.quest.active && nearStage) {
+          return "Drop wood/cloth/lights materials on stage.";
+        }
+
+        return "";
+      }
+
+      update(_, deltaMs) {
+        const dt = deltaMs / 1000;
+        this.interactCooldown = Math.max(0, this.interactCooldown - dt);
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.journal)) {
+          gameState.journalOpen = !gameState.journalOpen;
+          ui.journal.classList.toggle("visible", gameState.journalOpen);
+          this.journalDirty = true;
+          this.syncUi(true);
+        }
+
+        if (gameState.journalOpen) {
+          if (Phaser.Input.Keyboard.JustDown(this.keys.record)) {
+            this.toggleRecord();
+          }
+          this.syncUi();
+          return;
+        }
+
+        this.handlePlayer(dt);
+        this.updateDuckNeeds(dt);
+        this.updateDuckAI(dt);
+        this.updateProps();
+
+        if (!gameState.quest.stageUnlocked && gameState.duck.knownDances.length >= 3) {
+          gameState.quest.active = true;
+        }
+
+        if (gameState.stagedMode && this.time.now >= gameState.stagedEndsAt) {
+          this.resolveDanceInput();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.interact)) {
+          this.doInteraction();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.repair)) {
+          this.repairNearestBroken();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.record)) {
+          this.toggleRecord();
+        }
+
+        if (Phaser.Input.Keyboard.JustDown(this.keys.aDance)) this.onDanceKey("A");
+        if (Phaser.Input.Keyboard.JustDown(this.keys.sDance)) this.onDanceKey("S");
+        if (Phaser.Input.Keyboard.JustDown(this.keys.dDance)) this.onDanceKey("D");
+        if (Phaser.Input.Keyboard.JustDown(this.keys.fDance)) this.onDanceKey("F");
+
+        if (gameState.quest.stageUnlocked) {
+          this.stageVisual.setFillStyle(0x70ce91, 0.42);
+        }
+
+        this.syncUi();
+
+        this.saveTimer = (this.saveTimer || 0) + dt;
+        if (this.saveTimer > 4) {
+          saveGame(this);
+          this.saveTimer = 0;
+        }
+      }
+    }
+
+    let sceneRef = null;
+
+    function createGame() {
+      if (typeof Phaser === "undefined") {
+        ui.overlay.style.display = "grid";
+        ui.overlay.querySelector(".small").innerHTML = "Phaser failed to load from CDN. Check your internet connection, then reload this page.";
+        return;
+      }
+
+      const saved = loadGame();
+
+      const config = {
+        type: Phaser.AUTO,
+        parent: "game-wrap",
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: "#0c1519",
+        physics: {
+          default: "arcade",
+          arcade: {
+            gravity: { y: 1900 },
+            debug: false
+          }
+        },
+        scene: [RanchScene],
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH
+        }
+      };
+
+      const game = new Phaser.Game(config);
+      game.scene.start("ranch", saved);
+      sceneRef = game.scene.keys.ranch;
+
+      ui.teachBtn.onclick = () => sceneRef && sceneRef.teachSelected();
+      ui.showBtn.onclick = () => {
+        if (!sceneRef) return;
+        if (!gameState.quest.stageUnlocked) {
+          gameState.stickyText = "Show stage is still locked.";
+          sceneRef.syncUi(true);
+          return;
+        }
+        const nearStage = Phaser.Geom.Rectangle.Contains(sceneRef.stageRect, sceneRef.player.x, sceneRef.player.y);
+        if (!nearStage) {
+          gameState.stickyText = "Walk onto the show stage area before performing.";
+          sceneRef.syncUi(true);
+          return;
+        }
+        sceneRef.startDanceInput(gameState.selectedDance, "show");
+      };
+      ui.recordBtn.onclick = () => sceneRef && sceneRef.toggleRecord();
+      ui.nameBtn.onclick = () => {
+        if (!sceneRef) return;
+        const next = (ui.duckName.value || "").trim();
+        if (!next) return;
+        gameState.duck.name = next.slice(0, 22);
+        gameState.stickyText = `${gameState.duck.name} likes the new name.`;
+        sceneRef.journalDirty = true;
+        sceneRef.syncUi(true);
+      };
+
+      window.addEventListener("beforeunload", () => {
+        if (sceneRef) saveGame(sceneRef);
+      });
+    }
+
+    ui.start.onclick = () => {
+      ui.overlay.style.display = "none";
+      createGame();
+    };
+  </script>
+</body>
+</html>
