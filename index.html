@@ -246,7 +246,7 @@
         this.best = Number(localStorage.getItem(BEST_KEY) || 0);
         this.spawnTimer = 0;
         this.nextSpawnSeconds = 3.2;
-        this.clusterRemaining = 0;
+        this.obstacleQueue = [];
         this.gameOver = false;
         this.gameStarted = false;
         this.countdownActive = false;
@@ -428,6 +428,128 @@
         g.lineTo(8, 46);
         g.strokePath();
         g.generateTexture("crate", 48, 58);
+
+        g.clear();
+        g.fillStyle(0x4f341f, 0.18);
+        g.fillEllipse(22, 44, 30, 8);
+        g.fillStyle(0x846443, 1);
+        g.fillEllipse(22, 24, 32, 36);
+        g.fillStyle(0x9e7b53, 0.86);
+        g.fillEllipse(22, 24, 24, 28);
+        g.fillStyle(0x6a4d30, 1);
+        g.fillCircle(22, 24, 7);
+        g.generateTexture("stump", 44, 48);
+
+        g.clear();
+        g.fillStyle(0x503624, 0.18);
+        g.fillEllipse(24, 52, 36, 8);
+        g.fillStyle(0x93633e, 1);
+        g.fillEllipse(24, 28, 36, 48);
+        g.fillStyle(0xb27b4d, 0.88);
+        g.fillEllipse(24, 28, 28, 36);
+        g.lineStyle(2, 0x70492c, 0.78);
+        g.strokeEllipse(24, 28, 28, 36);
+        g.fillStyle(0x6b4529, 1);
+        g.fillRect(10, 20, 28, 4);
+        g.fillRect(10, 32, 28, 4);
+        g.generateTexture("barrel", 48, 56);
+
+        g.clear();
+        g.fillStyle(0x5c432d, 0.18);
+        g.fillEllipse(38, 52, 58, 8);
+        g.fillStyle(0x6c7f4d, 1);
+        g.fillRect(7, 10, 42, 20);
+        g.fillStyle(0x8a5c3d, 1);
+        g.fillRect(12, 18, 46, 18);
+        g.fillStyle(0xa8764d, 0.86);
+        g.fillRect(14, 20, 40, 10);
+        g.lineStyle(4, 0x5d412d, 1);
+        g.beginPath();
+        g.moveTo(10, 39);
+        g.lineTo(3, 49);
+        g.moveTo(56, 37);
+        g.lineTo(66, 51);
+        g.strokePath();
+        g.fillStyle(0x2e2f31, 1);
+        g.fillCircle(8, 50, 5);
+        g.fillCircle(61, 52, 5);
+        g.generateTexture("wheelbarrow", 72, 58);
+
+        g.clear();
+        g.fillStyle(0x996f32, 0.18);
+        g.fillEllipse(32, 76, 48, 8);
+        g.fillStyle(0xc7a15a, 1);
+        g.fillRoundedRect(3, 28, 58, 44, 6);
+        g.fillStyle(0xe8d28f, 1);
+        g.fillRoundedRect(7, 30, 50, 14, 5);
+        g.fillStyle(0xb89250, 0.88);
+        for (let i = 0; i < 8; i += 1) {
+          g.fillRect(8 + i * 6, 48 + (i % 2), 3, 18);
+        }
+        g.fillStyle(0xcdb16b, 1);
+        g.fillRoundedRect(8, 0, 48, 34, 6);
+        g.fillStyle(0xf0dd9f, 1);
+        g.fillRoundedRect(12, 3, 40, 10, 5);
+        g.fillStyle(0xb89250, 0.88);
+        for (let i = 0; i < 7; i += 1) {
+          g.fillRect(14 + i * 5, 12 + (i % 2), 3, 16);
+        }
+        g.generateTexture("haystack", 64, 80);
+
+        const drawCrow = (key, wingUp) => {
+          g.clear();
+          g.fillStyle(0x000000, 0.14);
+          g.fillEllipse(38, 30, 42, 8);
+          g.fillStyle(0x24282b, 1);
+          g.fillEllipse(34, 19, 30, 17);
+          g.fillStyle(0x1a1d20, 1);
+          g.fillCircle(50, 14, 9);
+          g.fillStyle(0x363c41, 0.4);
+          g.fillEllipse(28, 16, 11, 7);
+          g.fillStyle(0x111416, 1);
+          g.fillTriangle(57, 15, 66, 18, 57, 21);
+          g.fillStyle(0xf6e8a9, 1);
+          g.fillCircle(53, 12, 1.4);
+          g.fillStyle(0x000000, 1);
+          g.fillCircle(53, 12, 0.8);
+          g.lineStyle(3, 0x202428, 1);
+          g.beginPath();
+          if (wingUp) {
+            g.moveTo(22, 18);
+            g.lineTo(8, 6);
+            g.moveTo(34, 16);
+            g.lineTo(46, 6);
+          } else {
+            g.moveTo(22, 21);
+            g.lineTo(8, 28);
+            g.moveTo(34, 21);
+            g.lineTo(48, 30);
+          }
+          g.moveTo(24, 24);
+          g.lineTo(15, 29);
+          g.strokePath();
+          g.generateTexture(key, 68, 40);
+        };
+
+        drawCrow("crow_1", true);
+        drawCrow("crow_2", false);
+
+        g.clear();
+        g.fillStyle(0x233544, 1);
+        g.lineStyle(3, 0x233544, 1);
+        g.beginPath();
+        g.moveTo(4, 11);
+        g.lineTo(10, 5);
+        g.lineTo(16, 11);
+        g.strokePath();
+        g.generateTexture("bird_far", 20, 14);
+
+        g.clear();
+        g.fillStyle(0xfff7d5, 0.95);
+        g.fillCircle(4, 4, 2.5);
+        g.fillRect(3, 0, 2, 8);
+        g.fillRect(0, 3, 8, 2);
+        g.generateTexture("star", 8, 8);
 
         g.clear();
         g.fillStyle(0x1e2018, 0.16);
@@ -686,8 +808,39 @@
         this.skyLow = this.add.rectangle(this.worldWidth / 2, 650, this.worldWidth, 360, 0x769d78).setScrollFactor(0.55).setDepth(-28);
         this.sunGlow = this.add.circle(this.scale.width - 180, 124, 74, 0xffefb1, 0.32).setScrollFactor(0).setDepth(-27);
         this.sunDisk = this.add.circle(this.scale.width - 180, 124, 34, 0xfff4cf, 0.92).setScrollFactor(0).setDepth(-26);
+        this.moonGlow = this.add.circle(180, 128, 54, 0xc4d6ee, 0.1).setScrollFactor(0).setDepth(-27);
+        this.moonDisk = this.add.circle(180, 128, 24, 0xdde7f2, 0.16).setScrollFactor(0).setDepth(-26);
         this.horizonGlow = this.add.rectangle(this.scale.width * 0.5, 318, this.scale.width, 120, 0xffe1ad, 0.1).setScrollFactor(0).setDepth(-25);
         this.skyShade = this.add.rectangle(this.scale.width * 0.5, 110, this.scale.width, 220, 0x72b9d6, 0.14).setScrollFactor(0).setDepth(-24);
+        this.nightVeil = this.add.rectangle(this.scale.width * 0.5, this.scale.height * 0.5, this.scale.width, this.scale.height, 0x0b1631, 0).setScrollFactor(0).setDepth(-23);
+        this.stormVeil = this.add.rectangle(this.scale.width * 0.5, this.scale.height * 0.5, this.scale.width, this.scale.height, 0x42566c, 0).setScrollFactor(0).setDepth(-22);
+
+        this.stars = [];
+        for (let i = 0; i < 22; i += 1) {
+          const star = this.add.image(
+            Phaser.Math.Between(40, this.scale.width - 40),
+            Phaser.Math.Between(20, 230),
+            "star"
+          );
+          star.setScrollFactor(0);
+          star.setDepth(-21);
+          star.setScale(Phaser.Math.FloatBetween(0.65, 1.4));
+          star.setAlpha(0);
+          star.twinkleOffset = Math.random() * Math.PI * 2;
+          this.stars.push(star);
+        }
+
+        this.skyBirds = [];
+        for (let i = 0; i < 5; i += 1) {
+          const bird = this.add.image(this.scale.width + i * 80, Phaser.Math.Between(90, 240), "bird_far");
+          bird.setScrollFactor(0);
+          bird.setDepth(-18.5);
+          bird.baseSpeed = Phaser.Math.FloatBetween(0.16, 0.28);
+          bird.baseY = bird.y;
+          bird.setScale(Phaser.Math.FloatBetween(0.85, 1.3));
+          bird.setAlpha(0.55);
+          this.skyBirds.push(bird);
+        }
 
         // Screen-fixed parallax layers that move continuously.
         this.parallaxFar = this.add.tileSprite(this.scale.width * 0.5, 288, this.scale.width, 230, "bg_far")
@@ -732,8 +885,12 @@
         this.scale.on("resize", (size) => {
           this.sunGlow.setPosition(size.width - 180, 124);
           this.sunDisk.setPosition(size.width - 180, 124);
+          this.moonGlow.setPosition(180, 128);
+          this.moonDisk.setPosition(180, 128);
           this.horizonGlow.setSize(size.width, 120).setPosition(size.width * 0.5, 318);
           this.skyShade.setSize(size.width, 220).setPosition(size.width * 0.5, 110);
+          this.nightVeil.setSize(size.width, this.scale.height).setPosition(size.width * 0.5, this.scale.height * 0.5);
+          this.stormVeil.setSize(size.width, this.scale.height).setPosition(size.width * 0.5, this.scale.height * 0.5);
           this.parallaxFar.setSize(size.width, 230).setPosition(size.width * 0.5, 288);
           this.parallaxMid.setSize(size.width, 190).setPosition(size.width * 0.5, 452);
           this.parallaxNear.setSize(size.width, 130).setPosition(size.width * 0.5, this.groundY - 76);
@@ -742,6 +899,13 @@
           this.fenceStrip.setSize(size.width, 70).setPosition(size.width * 0.5, this.groundY - 24);
           this.groundTop.setSize(size.width, 34).setPosition(size.width * 0.5, this.groundY + 5);
           this.groundBase.setSize(size.width, 210).setPosition(size.width * 0.5, this.groundY + 116);
+          this.stars.forEach((star) => {
+            star.x = Phaser.Math.Clamp(star.x, 20, size.width - 20);
+          });
+          this.skyBirds.forEach((bird, idx) => {
+            bird.x = size.width + idx * 90;
+            bird.baseY = Phaser.Math.Clamp(bird.baseY, 90, 240);
+          });
         });
       }
 
@@ -961,59 +1125,201 @@
         this.sfx("jump", 0.18, 1.15 + Math.random() * 0.12);
       }
 
-      spawnObstacle() {
-        const choice = Math.random();
-        const key = choice < 0.55 ? "hay" : "crate";
-        const o = this.obstacles.create(this.duck.x + 900, this.groundY - 30, key);
+      pickGroundKey() {
+        const diff = Phaser.Math.Clamp(this.distance / 900, 0, 1);
+        const roll = Math.random();
+        if (diff < 0.25 && roll > 0.86) {
+          return "wheelbarrow";
+        }
+        if (roll < 0.24) {
+          return "hay";
+        }
+        if (roll < 0.42) {
+          return "stump";
+        }
+        if (roll < 0.62) {
+          return "crate";
+        }
+        if (roll < 0.79) {
+          return "barrel";
+        }
+        if (roll < 0.92) {
+          return "wheelbarrow";
+        }
+        return "haystack";
+      }
+
+      randomAirSpec() {
+        return {
+          key: Math.random() < 0.5 ? "crow_1" : "crow_2",
+          lane: "air",
+          altitude: Phaser.Math.Between(128, 168)
+        };
+      }
+
+      randomGap(diff, kind = "normal") {
+        if (kind === "burst") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(1.2, 0.92, diff),
+            Phaser.Math.Linear(1.9, 1.45, diff)
+          );
+        }
+        if (kind === "air") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(0.9, 0.68, diff),
+            Phaser.Math.Linear(1.35, 1.02, diff)
+          );
+        }
+        if (kind === "bridge") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(1.6, 1.18, diff),
+            Phaser.Math.Linear(2.4, 1.86, diff)
+          );
+        }
+        if (kind === "short") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(1.9, 1.22, diff),
+            Phaser.Math.Linear(3.0, 2.05, diff)
+          );
+        }
+        if (kind === "long") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(5.6, 3.4, diff),
+            Phaser.Math.Linear(8.8, 5.6, diff)
+          );
+        }
+        if (kind === "huge") {
+          return Phaser.Math.FloatBetween(
+            Phaser.Math.Linear(8.8, 5.8, diff),
+            Phaser.Math.Linear(12.6, 8.4, diff)
+          );
+        }
+        return Phaser.Math.FloatBetween(
+          Phaser.Math.Linear(3.2, 1.95, diff),
+          Phaser.Math.Linear(5.8, 3.55, diff)
+        );
+      }
+
+      buildObstaclePattern(diff) {
+        const ground = (key = this.pickGroundKey()) => ({ key, lane: "ground" });
+        const air = () => this.randomAirSpec();
+        const roll = Math.random();
+
+        if (roll < 0.16) {
+          return {
+            items: [ground()],
+            tailDelay: this.randomGap(diff, "normal")
+          };
+        }
+        if (roll < 0.28) {
+          return {
+            items: [ground("wheelbarrow")],
+            tailDelay: this.randomGap(diff, "long")
+          };
+        }
+        if (roll < 0.4) {
+          return {
+            items: [
+              { ...ground(), delayAfter: this.randomGap(diff, "burst") },
+              ground(Math.random() < 0.5 ? "stump" : "barrel")
+            ],
+            tailDelay: this.randomGap(diff, Math.random() < 0.35 ? "long" : "normal")
+          };
+        }
+        if (roll < 0.5) {
+          return {
+            items: [
+              { ...air(), delayAfter: this.randomGap(diff, "air") },
+              { ...air(), delayAfter: this.randomGap(diff, "air") },
+              air()
+            ],
+            tailDelay: this.randomGap(diff, "short")
+          };
+        }
+        if (roll < 0.62) {
+          return {
+            items: [
+              { ...ground(Math.random() < 0.45 ? "crate" : "hay"), delayAfter: this.randomGap(diff, "bridge") },
+              air()
+            ],
+            tailDelay: this.randomGap(diff, "normal")
+          };
+        }
+        if (roll < 0.74) {
+          return {
+            items: [
+              { ...air(), delayAfter: this.randomGap(diff, "bridge") },
+              ground(Math.random() < 0.4 ? "wheelbarrow" : "stump")
+            ],
+            tailDelay: this.randomGap(diff, "normal")
+          };
+        }
+        if (roll < 0.85) {
+          return {
+            items: [
+              ground("haystack")
+            ],
+            tailDelay: this.randomGap(diff, "huge")
+          };
+        }
+        return {
+          items: [
+            { ...ground(), delayAfter: this.randomGap(diff, "bridge") },
+            { ...ground(Math.random() < 0.55 ? "wheelbarrow" : "barrel"), delayAfter: this.randomGap(diff, "short") },
+            air()
+          ],
+          tailDelay: this.randomGap(diff, Math.random() < 0.5 ? "long" : "normal")
+        };
+      }
+
+      spawnObstacle(spec) {
+        const defs = {
+          hay: { bodyWidth: 52, bodyHeight: 40, y: this.groundY - 30 },
+          stump: { bodyWidth: 28, bodyHeight: 28, y: this.groundY - 16 },
+          crate: { bodyWidth: 42, bodyHeight: 48, y: this.groundY - 30 },
+          barrel: { bodyWidth: 30, bodyHeight: 40, y: this.groundY - 26 },
+          wheelbarrow: { bodyWidth: 62, bodyHeight: 28, y: this.groundY - 18 },
+          haystack: { bodyWidth: 52, bodyHeight: 62, y: this.groundY - 42 },
+          crow_1: { bodyWidth: 42, bodyHeight: 14, y: this.groundY - (spec.altitude || 142), lane: "air" },
+          crow_2: { bodyWidth: 42, bodyHeight: 14, y: this.groundY - (spec.altitude || 142), lane: "air" }
+        };
+
+        const def = defs[spec.key];
+        const o = this.obstacles.create(this.duck.x + 940, def.y, spec.key);
         o.setData("passed", false);
-        o.setBodySize(key === "hay" ? 52 : 42, key === "hay" ? 40 : 48, true);
+        o.setData("air", def.lane === "air");
+        o.setData("baseY", def.y);
+        o.setData("flapSeed", Math.random() * Math.PI * 2);
+        o.setData("textureA", spec.key === "crow_2" ? "crow_2" : "crow_1");
+        o.setData("textureB", spec.key === "crow_2" ? "crow_1" : "crow_2");
+        o.setBodySize(def.bodyWidth, def.bodyHeight, true);
         o.setImmovable(true);
         o.setVelocityX(-this.speed);
         o.setDepth(6);
+        if (def.lane === "air") {
+          o.setScale(Phaser.Math.FloatBetween(1.02, 1.2));
+        } else if (spec.key === "haystack") {
+          o.setScale(1.04);
+        }
       }
 
       updateSpawnPattern(dt) {
-        // Time-based pacing:
-        // frequent ~3s jumps with occasional long ~10s dry spells.
         this.spawnTimer += dt;
         while (this.spawnTimer >= this.nextSpawnSeconds) {
           this.spawnTimer -= this.nextSpawnSeconds;
-          this.spawnObstacle();
+          const diff = Phaser.Math.Clamp(this.distance / 700, 0, 1);
 
-          const diff = Phaser.Math.Clamp(this.distance / 650, 0, 1);
-          const clusterChance = 0.32 + diff * 0.3;
-          const longGapChance = 0.3 - diff * 0.2;
-
-          if (this.clusterRemaining > 0) {
-            this.clusterRemaining -= 1;
-            this.nextSpawnSeconds = Phaser.Math.FloatBetween(
-              Phaser.Math.Linear(2.6, 1.2, diff),
-              Phaser.Math.Linear(3.8, 2.2, diff)
-            );
-            continue;
+          if (this.obstacleQueue.length === 0) {
+            const pattern = this.buildObstaclePattern(diff);
+            this.obstacleQueue = pattern.items.map((item, idx) => ({
+              ...item,
+              delayAfter: idx === pattern.items.length - 1 ? pattern.tailDelay : item.delayAfter
+            }));
           }
 
-          const roll = Math.random();
-          if (roll < clusterChance) {
-            // Start a 2-3 obstacle burst.
-            this.clusterRemaining = Phaser.Math.Between(1, 2);
-            this.nextSpawnSeconds = Phaser.Math.FloatBetween(
-              Phaser.Math.Linear(2.8, 1.35, diff),
-              Phaser.Math.Linear(4.2, 2.6, diff)
-            );
-          } else if (roll < clusterChance + Math.max(0.08, longGapChance)) {
-            // Long breathing room, sometimes close to 10 seconds.
-            this.nextSpawnSeconds = Phaser.Math.FloatBetween(
-              Phaser.Math.Linear(8.5, 4.8, diff),
-              Phaser.Math.Linear(11.2, 6.9, diff)
-            );
-          } else {
-            // Normal spacing.
-            this.nextSpawnSeconds = Phaser.Math.FloatBetween(
-              Phaser.Math.Linear(4.2, 2.2, diff),
-              Phaser.Math.Linear(6.8, 4.2, diff)
-            );
-          }
+          const spec = this.obstacleQueue.shift();
+          this.spawnObstacle(spec);
+          this.nextSpawnSeconds = spec.delayAfter;
         }
       }
 
@@ -1063,7 +1369,7 @@
         this.collectedPrizes = [];
         this.spawnTimer = 0;
         this.nextSpawnSeconds = 3.2;
-        this.clusterRemaining = 0;
+        this.obstacleQueue = [];
         this.spawnPrizeTimer = 0;
         this.nextPrizeSpawnSeconds = 4.4;
         this.hatLevel = 0;
@@ -1112,50 +1418,109 @@
       }
 
       updateSky(deltaMs) {
+        const mixColor = (a, b, t) => ({
+          r: Math.round(Phaser.Math.Linear(a.r, b.r, t)),
+          g: Math.round(Phaser.Math.Linear(a.g, b.g, t)),
+          b: Math.round(Phaser.Math.Linear(a.b, b.b, t))
+        });
+
         const t = this.time.now * 0.00008;
-        const dayMix = (Math.sin(t) + 1) * 0.5;
-        const top = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(88, 154, 184),
-          new Phaser.Display.Color(155, 217, 239),
-          100,
-          Math.round(dayMix * 100)
-        );
-        const mid = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(84, 137, 122),
-          new Phaser.Display.Color(126, 190, 203),
-          100,
-          Math.round(dayMix * 100)
-        );
-        const low = Phaser.Display.Color.Interpolate.ColorWithColor(
-          new Phaser.Display.Color(74, 110, 83),
-          new Phaser.Display.Color(106, 165, 136),
-          100,
-          Math.round(dayMix * 100)
-        );
+        const skyWave = (Math.sin(t) + 1) * 0.5;
+        const nightMix = Math.pow(1 - skyWave, 1.8);
+        const goldenMix =
+          Phaser.Math.Clamp(1 - Math.abs(skyWave - 0.18) / 0.18, 0, 1) +
+          Phaser.Math.Clamp(1 - Math.abs(skyWave - 0.82) / 0.18, 0, 1);
+        const stormMix = Math.pow((Math.sin(this.time.now * 0.000031 + 1.7) + 1) * 0.5, 4.8);
+        const windPulse = Math.sin(this.time.now * 0.0019) * 0.5 + Math.sin(this.time.now * 0.0042) * 0.35;
+        const celestial = (this.time.now * 0.00002) % 1;
+
+        let top = mixColor({ r: 28, g: 46, b: 84 }, { r: 155, g: 217, b: 239 }, skyWave);
+        let mid = mixColor({ r: 37, g: 71, b: 98 }, { r: 126, g: 190, b: 203 }, skyWave);
+        let low = mixColor({ r: 42, g: 69, b: 66 }, { r: 106, g: 165, b: 136 }, skyWave);
+
+        top = mixColor(top, { r: 243, g: 176, b: 123 }, Phaser.Math.Clamp(goldenMix * 0.26, 0, 0.26));
+        mid = mixColor(mid, { r: 220, g: 163, b: 118 }, Phaser.Math.Clamp(goldenMix * 0.2, 0, 0.2));
+        low = mixColor(low, { r: 165, g: 130, b: 88 }, Phaser.Math.Clamp(goldenMix * 0.18, 0, 0.18));
+
+        top = mixColor(top, { r: 104, g: 128, b: 148 }, stormMix * 0.55);
+        mid = mixColor(mid, { r: 90, g: 111, b: 123 }, stormMix * 0.48);
+        low = mixColor(low, { r: 73, g: 90, b: 74 }, stormMix * 0.42);
 
         this.skyTop.fillColor = Phaser.Display.Color.GetColor(top.r, top.g, top.b);
         this.skyMid.fillColor = Phaser.Display.Color.GetColor(mid.r, mid.g, mid.b);
         this.skyLow.fillColor = Phaser.Display.Color.GetColor(low.r, low.g, low.b);
-        this.sunGlow.alpha = 0.22 + dayMix * 0.22;
-        this.sunDisk.alpha = 0.72 + dayMix * 0.18;
-        this.horizonGlow.alpha = 0.07 + dayMix * 0.08;
-        this.skyShade.alpha = 0.09 + (1 - dayMix) * 0.06;
+
+        const sunX = this.scale.width * (0.08 + celestial * 0.84);
+        const sunY = 248 - Math.sin(celestial * Math.PI) * 154;
+        const moonX = this.scale.width * (0.92 - celestial * 0.84);
+        const moonY = 252 - Math.sin(celestial * Math.PI) * 132;
+
+        this.sunGlow.setPosition(sunX, sunY);
+        this.sunDisk.setPosition(sunX, sunY);
+        this.moonGlow.setPosition(moonX, moonY);
+        this.moonDisk.setPosition(moonX, moonY);
+
+        this.sunGlow.alpha = 0.08 + skyWave * 0.28;
+        this.sunDisk.alpha = 0.16 + skyWave * 0.76;
+        this.moonGlow.alpha = 0.04 + nightMix * 0.28;
+        this.moonDisk.alpha = 0.08 + nightMix * 0.7;
+        this.horizonGlow.alpha = 0.04 + skyWave * 0.06 + Phaser.Math.Clamp(goldenMix * 0.16, 0, 0.16);
+        this.skyShade.alpha = 0.08 + nightMix * 0.12 + stormMix * 0.06;
+        this.nightVeil.alpha = nightMix * 0.42;
+        this.stormVeil.alpha = stormMix * 0.14;
+
+        const farTint = mixColor({ r: 74, g: 95, b: 131 }, { r: 255, g: 255, b: 255 }, skyWave);
+        const midTint = mixColor({ r: 86, g: 100, b: 109 }, { r: 255, g: 251, b: 240 }, skyWave);
+        const lowTint = mixColor({ r: 63, g: 79, b: 67 }, { r: 255, g: 249, b: 236 }, skyWave);
+        const midStormTint = mixColor(midTint, { r: 216, g: 222, b: 228 }, stormMix * 0.35);
+        const stormTint = Phaser.Display.Color.GetColor(216, 222, 228);
+
+        this.parallaxFar.setTint(Phaser.Display.Color.GetColor(farTint.r, farTint.g, farTint.b));
+        this.parallaxMid.setTint(Phaser.Display.Color.GetColor(midStormTint.r, midStormTint.g, midStormTint.b));
+        this.parallaxNear.setTint(Phaser.Display.Color.GetColor(lowTint.r, lowTint.g, lowTint.b));
+        this.barnStrip.setTint(stormMix > 0.12 ? stormTint : 0xffffff);
+        this.fieldRows.setTint(stormMix > 0.12 ? stormTint : 0xffffff);
+        this.fenceStrip.setTint(stormMix > 0.12 ? stormTint : 0xffffff);
+        this.groundTop.setTint(stormMix > 0.12 ? stormTint : 0xffffff);
+        this.groundBase.setTint(stormMix > 0.12 ? 0xd0d7db : 0xffffff);
 
         const travelSpeed = this.gameStarted && !this.gameOver && !this.countdownActive ? this.speed : this.baseSpeed * 0.45;
-        this.parallaxFar.tilePositionX += (travelSpeed * 0.018) * (deltaMs / 16.666);
-        this.parallaxMid.tilePositionX += (travelSpeed * 0.03) * (deltaMs / 16.666);
-        this.parallaxNear.tilePositionX += (travelSpeed * 0.05) * (deltaMs / 16.666);
-        this.barnStrip.tilePositionX += (travelSpeed * 0.038) * (deltaMs / 16.666);
-        this.fieldRows.tilePositionX += (travelSpeed * 0.056) * (deltaMs / 16.666);
-        this.fenceStrip.tilePositionX += (travelSpeed * 0.088) * (deltaMs / 16.666);
-        this.groundTop.tilePositionX += (travelSpeed * 0.11) * (deltaMs / 16.666);
-        this.groundBase.tilePositionX += (travelSpeed * 0.062) * (deltaMs / 16.666);
+        const gust = 1 + Math.max(0, windPulse) * 0.18;
+        this.parallaxFar.tilePositionX += (travelSpeed * 0.018 * gust) * (deltaMs / 16.666);
+        this.parallaxMid.tilePositionX += (travelSpeed * 0.03 * gust) * (deltaMs / 16.666);
+        this.parallaxNear.tilePositionX += (travelSpeed * 0.05 * gust) * (deltaMs / 16.666);
+        this.barnStrip.tilePositionX += (travelSpeed * 0.038 * gust) * (deltaMs / 16.666);
+        this.fieldRows.tilePositionX += (travelSpeed * 0.056 * gust) * (deltaMs / 16.666);
+        this.fenceStrip.tilePositionX += (travelSpeed * 0.088 * gust) * (deltaMs / 16.666);
+        this.groundTop.tilePositionX += (travelSpeed * 0.11 * gust) * (deltaMs / 16.666);
+        this.groundBase.tilePositionX += (travelSpeed * 0.062 * gust) * (deltaMs / 16.666);
+
+        this.parallaxNear.y = this.groundY - 76 + windPulse * 1.3;
+        this.fieldRows.y = this.groundY - 74 + windPulse * 1.8;
+        this.fenceStrip.y = this.groundY - 24 + windPulse * 0.8;
+        this.groundTop.y = this.groundY + 5 + windPulse * 0.35;
 
         this.clouds.forEach((c, idx) => {
-          c.x -= (0.042 + idx * 0.007) * deltaMs;
+          c.x -= (0.03 + idx * 0.006 + stormMix * 0.04 + Math.max(0, windPulse) * 0.018) * deltaMs;
+          c.alpha = 0.5 + skyWave * 0.35 - stormMix * 0.16;
+          c.setTint(stormMix > 0.08 ? 0xd8e1e6 : 0xffffff);
           if (c.x < -120) {
             c.x = this.scale.width + 120;
             c.y = Phaser.Math.Between(75, 220);
+          }
+        });
+
+        this.stars.forEach((star, idx) => {
+          star.alpha = nightMix * (0.28 + 0.54 * ((Math.sin(this.time.now * 0.004 + star.twinkleOffset + idx) + 1) * 0.5));
+        });
+
+        this.skyBirds.forEach((bird, idx) => {
+          bird.x -= (bird.baseSpeed + stormMix * 0.06 + Math.max(0, windPulse) * 0.02) * deltaMs;
+          bird.y = bird.baseY + Math.sin(this.time.now * 0.002 + idx) * 4;
+          bird.alpha = Phaser.Math.Clamp(0.15 + skyWave * 0.45 - nightMix * 0.25, 0.08, 0.66);
+          if (bird.x < -40) {
+            bird.x = this.scale.width + Phaser.Math.Between(80, 320);
+            bird.baseY = Phaser.Math.Between(92, 236);
           }
         });
       }
@@ -1251,6 +1616,15 @@
             return;
           }
           o.setVelocityX(-this.speed);
+          if (o.getData("air")) {
+            const flapSeed = o.getData("flapSeed");
+            const flapUp = Math.sin(this.time.now * 0.02 + flapSeed) > 0;
+            o.setTexture(flapUp ? o.getData("textureA") : o.getData("textureB"));
+            o.y = o.getData("baseY") + Math.sin(this.time.now * 0.005 + flapSeed) * 5;
+            o.angle = Math.sin(this.time.now * 0.006 + flapSeed) * 4;
+          } else {
+            o.angle = 0;
+          }
           if (o.x < this.duck.x - 120 && !o.getData("passed")) {
             o.setData("passed", true);
             this.distance += 3;
