@@ -34,3 +34,31 @@ test("runner supports prize collection and stacked hats at 1m and 2m", async ({ 
   await expect(page.locator("#prizes")).toContainText("Hat 2: Bowler");
   await expect(page.locator("#prizes")).toContainText("Prize Count:");
 });
+
+test("runner uses mobile-friendly controls and compact HUD on a phone viewport", async ({ browser }) => {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    isMobile: true,
+    hasTouch: true
+  });
+  const page = await context.newPage();
+
+  await page.goto("http://127.0.0.1:4381/index.html");
+  await page.getByRole("button", { name: "Start Runner" }).click();
+
+  await expect(page.locator("#jumpBtn")).toBeVisible();
+  await page.waitForFunction(() => window.__duckDash && window.__duckDash.getState() !== null);
+  await page.evaluate(() => window.__duckDash.startNow());
+  await page.waitForFunction(() => window.__duckDash.getState().gameStarted === true);
+  await page.waitForFunction(() => {
+    const duck = window.__duckDash.scene().duck;
+    return duck.body.blocked.down || duck.body.touching.down;
+  });
+
+  await page.locator("#jumpBtn").click();
+  await page.waitForFunction(() => window.__duckDash.scene().duck.body.velocity.y < -100);
+  await expect(page.locator("#top")).toContainText("Duck Dash");
+  await expect(page.locator("#top")).not.toContainText("FPS");
+
+  await context.close();
+});
