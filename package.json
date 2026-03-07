@@ -1,0 +1,19 @@
+{
+  "name": "ducks-game",
+  "version": "1.0.0",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "serve": "python3 -m http.server 4381",
+    "test:playwright": "playwright test tests/duck-runner.spec.js --browser=chromium --reporter=line"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.58.2"
+  }
+}

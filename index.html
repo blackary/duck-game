@@ -6,9 +6,11 @@
   <title>Duck Dash Runner</title>
   <style>
     :root {
-      --hud-bg: rgba(10, 18, 24, 0.72);
-      --hud-line: rgba(200, 230, 238, 0.28);
-      --hud-text: #e7f5f8;
+      --hud-bg: rgba(11, 20, 26, 0.76);
+      --hud-line: rgba(214, 238, 221, 0.22);
+      --hud-text: #edf8f4;
+      --accent: #f8d87f;
+      --accent-soft: #f7ecbb;
     }
 
     * { box-sizing: border-box; }
@@ -18,7 +20,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      background: #0b1419;
+      background: radial-gradient(circle at top, #324c4d 0%, #122129 48%, #091016 100%);
       color: var(--hud-text);
       font-family: "Avenir Next", "Trebuchet MS", sans-serif;
     }
@@ -39,11 +41,14 @@
 
     .panel {
       width: min(760px, 92vw);
-      background: rgba(10, 18, 24, 0.78);
+      background:
+        linear-gradient(180deg, rgba(20, 34, 32, 0.9), rgba(10, 18, 24, 0.84)),
+        rgba(10, 18, 24, 0.78);
       border: 1px solid var(--hud-line);
-      border-radius: 14px;
-      padding: 16px;
-      backdrop-filter: blur(5px);
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+      backdrop-filter: blur(8px);
     }
 
     h1 {
@@ -65,8 +70,13 @@
       font: inherit;
       font-weight: 700;
       cursor: pointer;
-      background: linear-gradient(160deg, #9ce8ff, #59c8e7);
-      color: #08232c;
+      background: linear-gradient(180deg, #ffe8aa, #e0bc61);
+      color: #30200a;
+      box-shadow: inset 0 1px 0 rgba(255, 252, 230, 0.52), 0 8px 18px rgba(65, 43, 8, 0.22);
+    }
+
+    button:hover {
+      filter: brightness(1.02);
     }
 
     #hud {
@@ -82,11 +92,46 @@
       left: 10px;
       background: var(--hud-bg);
       border: 1px solid var(--hud-line);
-      border-radius: 8px;
-      padding: 8px 10px;
+      border-radius: 12px;
+      padding: 10px 12px;
       font-size: 0.88rem;
       line-height: 1.35;
       white-space: pre-line;
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.22);
+    }
+
+    #prizes {
+      position: absolute;
+      right: 12px;
+      bottom: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+      max-width: min(42vw, 420px);
+    }
+
+    .prizeChip {
+      background: rgba(17, 31, 28, 0.82);
+      border: 1px solid rgba(244, 232, 179, 0.24);
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 0.8rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+    }
+
+    #toast {
+      position: absolute;
+      left: 50%;
+      top: 16px;
+      transform: translateX(-50%);
+      background: rgba(22, 40, 35, 0.88);
+      border: 1px solid rgba(250, 235, 184, 0.26);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 0.86rem;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.2);
+      display: none;
     }
 
     #msg {
@@ -156,12 +201,14 @@
   <div id="hud">
     <div id="top"></div>
     <div id="msg"></div>
+    <div id="toast"></div>
+    <div id="prizes"></div>
   </div>
 
   <div id="hatPicker">
     <div class="panel">
-      <h1>1 Minute Reward</h1>
-      <div class="small">Pick a hat for your duck, then the run continues.</div>
+      <h1 id="hatTitle">1 Minute Reward</h1>
+      <div id="hatDesc" class="small">Pick a hat for your duck, then the run continues.</div>
       <div class="hatChoices">
         <button class="hatBtn" data-hat="hat_straw">Straw Hat</button>
         <button class="hatBtn" data-hat="hat_cap">Blue Cap</button>
@@ -179,8 +226,12 @@
       overlay: document.getElementById("overlay"),
       top: document.getElementById("top"),
       msg: document.getElementById("msg"),
+      toast: document.getElementById("toast"),
+      prizes: document.getElementById("prizes"),
       startBtn: document.getElementById("startBtn"),
-      hatPicker: document.getElementById("hatPicker")
+      hatPicker: document.getElementById("hatPicker"),
+      hatTitle: document.getElementById("hatTitle"),
+      hatDesc: document.getElementById("hatDesc")
     };
 
     class DuckRunnerScene extends Phaser.Scene {
@@ -203,9 +254,14 @@
         this.countdownTimer = 0;
         this.goTimer = 0;
         this.runSeconds = 0;
-        this.choosingHat = false;
-        this.hatUnlocked = false;
-        this.selectedHat = null;
+        this.choosingHatLevel = 0;
+        this.hatLevel = 0;
+        this.selectedHats = [];
+        this.prizeCount = 0;
+        this.collectedPrizes = [];
+        this.spawnPrizeTimer = 0;
+        this.nextPrizeSpawnSeconds = 4.4;
+        this.toastTimer = 0;
       }
 
       preload() {
@@ -230,65 +286,147 @@
       createTextures() {
         const g = this.make.graphics({ x: 0, y: 0, add: false });
 
-        const drawDuck = (legY, wingTilt, key) => {
+        const drawDuck = (frame) => {
           g.clear();
-          g.fillStyle(0xeabf46, 1);
-          g.fillEllipse(34, 31, 68, 56);
-          g.fillStyle(0xf4d56b, 1);
-          g.fillEllipse(29, 24, 48, 34);
-          g.fillStyle(0xdba93b, 0.8);
-          g.fillEllipse(19, 36, 16, 12);
+          g.fillStyle(0x000000, 0.15);
+          g.fillEllipse(38, 59, 48, 10);
 
+          g.fillStyle(0x9c7327, 0.95);
+          g.fillTriangle(7, 33, 0, 27, 5, 41);
+
+          g.fillStyle(0xf0c54a, 1);
+          g.fillEllipse(34, 35, 53, 39);
+          g.fillStyle(0x8c6620, 0.85);
+          g.lineStyle(3, 0x8c6620, 0.78);
+          g.strokeEllipse(34, 35, 53, 39);
+
+          g.fillStyle(0xf6da7c, 1);
+          g.fillEllipse(31, 28, 36, 22);
+          g.fillStyle(0xe4b444, 0.92);
+          g.fillEllipse(37, 39, 28, 16);
+          g.fillStyle(0xffffff, 0.2);
+          g.fillEllipse(24, 23, 15, 9);
+
+          g.fillStyle(0xf6d786, 1);
+          g.fillEllipse(58, 17, 25, 22);
+          g.lineStyle(3, 0x8c6620, 0.74);
+          g.strokeEllipse(58, 17, 25, 22);
+          g.fillStyle(0xf8e8b5, 0.96);
+          g.fillEllipse(58, 24, 15, 10);
+
+          const wingAngle = frame === "run1" ? -0.38 : frame === "run2" ? 0.14 : -0.06;
           g.save();
-          g.translateCanvas(29, 33);
-          g.rotateCanvas(wingTilt);
-          g.fillStyle(0xf0c24e, 1);
-          g.fillEllipse(0, 0, 24, 17);
-          g.fillStyle(0xf7d56d, 0.9);
-          g.fillEllipse(2, -2, 14, 9);
+          g.translateCanvas(29, 35);
+          g.rotateCanvas(wingAngle);
+          g.fillStyle(0xe5b648, 1);
+          g.fillEllipse(0, 0, 20, 27);
+          g.lineStyle(2, 0xa17926, 0.62);
+          g.strokeEllipse(0, 0, 20, 27);
+          g.fillStyle(0xf4d570, 0.72);
+          g.fillEllipse(2, -5, 11, 11);
           g.restore();
 
-          g.fillStyle(0xffe79a, 1);
-          g.fillEllipse(53, 15, 28, 24);
-          g.fillStyle(0xfbd7a0, 0.95);
-          g.fillEllipse(55, 27, 17, 10);
+          g.fillStyle(0x1b221b, 1);
+          g.fillCircle(62, 16, frame === "jump" ? 3.2 : 4.2);
+          g.fillStyle(0xffffff, 0.95);
+          g.fillCircle(63, 15, 1.2);
 
-          g.fillStyle(0x1f2b31, 1);
-          g.fillCircle(59, 14, 4.2);
-          g.fillStyle(0xffffff, 0.9);
-          g.fillCircle(60, 13, 1.3);
+          g.fillStyle(0xf39b48, 1);
+          g.fillTriangle(67, 21, 81, 18, 67, 14);
+          g.fillStyle(0xd97836, 1);
+          g.fillRect(68, 17, 11, 2);
 
-          g.fillStyle(0xffa25b, 1);
-          g.fillEllipse(68, 19, 16, 11);
-          g.fillStyle(0xf07a44, 1);
-          g.fillRect(62, 19, 12, 2);
+          const leg1Y = frame === "run2" ? 54 : 57;
+          const leg2Y = frame === "run1" ? 54 : 57;
+          g.lineStyle(3, 0xe48a38, 1);
+          g.beginPath();
+          g.moveTo(28, 46);
+          g.lineTo(26, leg1Y);
+          g.moveTo(42, 47);
+          g.lineTo(43, leg2Y);
+          g.strokePath();
+          g.fillStyle(0xf0a34c, 1);
+          g.fillEllipse(24, leg1Y + 1, 12, 5);
+          g.fillEllipse(44, leg2Y + 1, 12, 5);
 
-          g.fillStyle(0xf38f47, 1);
-          g.fillEllipse(28, legY, 12, 7);
-          g.fillEllipse(45, legY - 1, 12, 7);
+          if (frame === "jump") {
+            g.fillStyle(0xffffff, 0.22);
+            g.fillEllipse(40, 10, 20, 8);
+          } else {
+            g.fillStyle(0xf7df92, 0.42);
+            g.fillEllipse(15, 39, 9, 5);
+          }
 
-          g.generateTexture(key, 74, 58);
+          g.generateTexture(`duck_${frame}`, 84, 64);
         };
 
-        drawDuck(54, -0.14, "duck_run1");
-        drawDuck(51, 0.11, "duck_run2");
-        drawDuck(56, -0.04, "duck_jump");
+        drawDuck("run1");
+        drawDuck("run2");
+        drawDuck("jump");
 
         g.clear();
-        g.fillStyle(0xcfb261, 1);
-        g.fillRoundedRect(0, 0, 58, 52, 4);
-        g.fillStyle(0xe4cb84, 1);
-        g.fillRoundedRect(2, 2, 54, 18, 3);
+        g.fillStyle(0xa27a3b, 0.18);
+        g.fillEllipse(30, 56, 48, 8);
+        g.fillStyle(0xc9a75e, 1);
+        g.fillRoundedRect(0, 8, 58, 44, 6);
+        g.fillStyle(0xe8d28f, 1);
+        g.fillRoundedRect(4, 10, 50, 16, 5);
+        g.fillStyle(0xb89250, 0.88);
+        for (let i = 0; i < 8; i += 1) {
+          g.fillRect(6 + i * 6, 30 + (i % 2), 3, 18);
+        }
         g.generateTexture("hay", 58, 52);
 
         g.clear();
-        g.fillStyle(0x977452, 1);
-        g.fillRoundedRect(0, 0, 48, 58, 4);
+        g.fillStyle(0x553823, 0.18);
+        g.fillEllipse(24, 61, 38, 7);
+        g.fillStyle(0x94684a, 1);
+        g.fillRoundedRect(0, 2, 48, 56, 5);
         g.fillStyle(0xbc9671, 1);
-        g.fillRoundedRect(2, 2, 44, 20, 3);
+        g.fillRoundedRect(3, 5, 42, 16, 3);
         g.lineStyle(2, 0x7f5f42, 1);
         g.strokeRect(4, 4, 40, 50);
+        g.lineStyle(3, 0x6c513a, 0.84);
+        g.beginPath();
+        g.moveTo(8, 12);
+        g.lineTo(40, 46);
+        g.moveTo(40, 12);
+        g.lineTo(8, 46);
+        g.strokePath();
         g.generateTexture("crate", 48, 58);
+
+        g.clear();
+        g.fillStyle(0x1e2018, 0.16);
+        g.fillEllipse(18, 38, 22, 8);
+        g.fillStyle(0xf0d279, 1);
+        g.fillCircle(18, 18, 16);
+        g.fillStyle(0xd8b559, 0.92);
+        g.fillCircle(18, 18, 10);
+        g.fillStyle(0xffffff, 0.9);
+        g.fillCircle(18, 18, 4);
+        g.generateTexture("prize_rosette", 36, 42);
+
+        g.clear();
+        g.fillStyle(0x1e2018, 0.16);
+        g.fillEllipse(18, 40, 22, 8);
+        g.fillStyle(0x69c9e8, 1);
+        g.fillCircle(18, 16, 14);
+        g.fillStyle(0xbef0ff, 0.85);
+        g.fillCircle(14, 12, 5);
+        g.fillStyle(0x2a7c98, 1);
+        g.fillRect(14, 27, 8, 9);
+        g.generateTexture("prize_feather", 36, 42);
+
+        g.clear();
+        g.fillStyle(0x1e2018, 0.16);
+        g.fillEllipse(20, 42, 24, 8);
+        g.fillStyle(0xe3b45e, 1);
+        g.fillRect(9, 16, 22, 16);
+        g.fillStyle(0xf6dd93, 1);
+        g.fillEllipse(20, 15, 28, 10);
+        g.fillStyle(0x9e6e38, 1);
+        g.fillRect(16, 31, 8, 8);
+        g.generateTexture("prize_cup", 40, 44);
 
         g.clear();
         g.fillStyle(0x6f8f58, 1);
@@ -414,6 +552,8 @@
         this.skyTop = this.add.rectangle(this.worldWidth / 2, 180, this.worldWidth, 360, 0x95d4ec).setScrollFactor(0.15).setDepth(-30);
         this.skyMid = this.add.rectangle(this.worldWidth / 2, 430, this.worldWidth, 400, 0x7ebecb).setScrollFactor(0.3).setDepth(-29);
         this.skyLow = this.add.rectangle(this.worldWidth / 2, 650, this.worldWidth, 360, 0x6aa588).setScrollFactor(0.55).setDepth(-28);
+        this.sunGlow = this.add.circle(this.scale.width - 180, 124, 74, 0xffefb1, 0.32).setScrollFactor(0).setDepth(-27);
+        this.sunDisk = this.add.circle(this.scale.width - 180, 124, 34, 0xfff4cf, 0.92).setScrollFactor(0).setDepth(-26);
 
         // Screen-fixed parallax layers that move continuously.
         this.parallaxFar = this.add.tileSprite(this.scale.width * 0.5, 300, this.scale.width, 230, "bg_far")
@@ -448,6 +588,8 @@
         this.physics.add.existing(this.groundBody, true);
 
         this.scale.on("resize", (size) => {
+          this.sunGlow.setPosition(size.width - 180, 124);
+          this.sunDisk.setPosition(size.width - 180, 124);
           this.parallaxFar.setSize(size.width, 230).setPosition(size.width * 0.5, 300);
           this.parallaxMid.setSize(size.width, 190).setPosition(size.width * 0.5, 470);
           this.parallaxNear.setSize(size.width, 130).setPosition(size.width * 0.5, this.groundY - 42);
@@ -458,23 +600,36 @@
       }
 
       createDuck() {
-        this.duck = this.physics.add.sprite(180, this.groundY - 40, "duck_run1");
+        this.duckShadow = this.add.ellipse(184, this.groundY + 8, 56, 16, 0x162011, 0.22).setDepth(3);
+
+        this.duck = this.physics.add.sprite(180, this.groundY - 44, "duck_run1");
+        this.duck.setDepth(7);
         this.duck.setCollideWorldBounds(true);
-        this.duck.setBodySize(52, 44, true);
+        this.duck.setBodySize(54, 44, true);
         this.duck.setBounce(0);
         this.duck.setMaxVelocity(1000, 980);
 
         this.physics.add.collider(this.duck, this.groundBody);
 
-        this.duckHat = this.add.image(this.duck.x, this.duck.y - 34, "hat_straw");
+        this.duckHat = this.add.image(this.duck.x, this.duck.y - 40, "hat_straw");
         this.duckHat.setVisible(false);
         this.duckHat.setDepth(8);
+
+        this.duckHatTop = this.add.image(this.duck.x, this.duck.y - 58, "hat_cap");
+        this.duckHatTop.setVisible(false);
+        this.duckHatTop.setScale(0.9);
+        this.duckHatTop.setDepth(9);
       }
 
       createObstacles() {
         this.obstacles = this.physics.add.group({ allowGravity: false, immovable: true });
         this.physics.add.collider(this.obstacles, this.groundBody);
         this.physics.add.overlap(this.duck, this.obstacles, this.hitObstacle, null, this);
+      }
+
+      createPrizes() {
+        this.prizes = this.physics.add.group({ allowGravity: false, immovable: true });
+        this.physics.add.overlap(this.duck, this.prizes, this.collectPrize, null, this);
       }
 
       createInput() {
@@ -487,7 +642,7 @@
         });
 
         this.input.on("pointerdown", () => {
-          if (this.choosingHat) {
+          if (this.choosingHatLevel) {
             return;
           }
           if (this.gameOver) {
@@ -504,6 +659,7 @@
         this.createWorld();
         this.createDuck();
         this.createObstacles();
+        this.createPrizes();
         this.createInput();
 
         this.cameras.main.setBounds(0, 0, this.worldWidth, this.worldHeight);
@@ -522,25 +678,115 @@
         ui.msg.style.display = "none";
       }
 
-      openHatPicker() {
-        if (this.hatUnlocked || this.choosingHat || this.gameOver) {
+      showToast(text, duration = 1.55) {
+        ui.toast.textContent = text;
+        ui.toast.style.display = "block";
+        this.toastTimer = duration;
+      }
+
+      openHatPicker(level) {
+        if (this.choosingHatLevel || this.gameOver) {
           return;
         }
-        this.choosingHat = true;
+        this.choosingHatLevel = level;
         this.gameStarted = false;
         this.physics.world.pause();
+        ui.hatTitle.textContent = level === 1 ? "1 Minute Reward" : "2 Minute Reward";
+        ui.hatDesc.textContent = level === 1
+          ? "Pick the first hat for your duck, then the run continues."
+          : "Stack a second hat on top. Pick one and keep running.";
         ui.hatPicker.style.display = "grid";
       }
 
       applyHatChoice(key) {
-        this.selectedHat = key;
-        this.hatUnlocked = true;
-        this.choosingHat = false;
-        this.duckHat.setTexture(key);
-        this.duckHat.setVisible(true);
+        if (!this.choosingHatLevel) {
+          return;
+        }
+
+        const slot = this.choosingHatLevel - 1;
+        this.selectedHats[slot] = key;
+        this.hatLevel = Math.max(this.hatLevel, this.choosingHatLevel);
+        this.choosingHatLevel = 0;
+
+        this.duckHat.setVisible(Boolean(this.selectedHats[0]));
+        if (this.selectedHats[0]) {
+          this.duckHat.setTexture(this.selectedHats[0]);
+        }
+        this.duckHatTop.setVisible(Boolean(this.selectedHats[1]));
+        if (this.selectedHats[1]) {
+          this.duckHatTop.setTexture(this.selectedHats[1]);
+        }
         ui.hatPicker.style.display = "none";
         this.physics.world.resume();
         this.gameStarted = true;
+        this.showToast(slot === 0 ? "First hat equipped." : "Second hat stacked.");
+      }
+
+      spawnPrize() {
+        const prizeDefs = [
+          { key: "prize_rosette", label: "Ribbon", value: 1 },
+          { key: "prize_feather", label: "Feather Charm", value: 1 },
+          { key: "prize_cup", label: "Tiny Trophy", value: 2 }
+        ];
+        const def = Phaser.Utils.Array.GetRandom(prizeDefs);
+        const prize = this.prizes.create(
+          this.duck.x + 940,
+          this.groundY - Phaser.Math.Between(80, 158),
+          def.key
+        );
+        prize.setData("label", def.label);
+        prize.setData("value", def.value);
+        prize.setDepth(6);
+        prize.setBodySize(24, 24, true);
+        prize.setVelocityX(-this.speed);
+      }
+
+      updatePrizePattern(dt) {
+        this.spawnPrizeTimer += dt;
+        while (this.spawnPrizeTimer >= this.nextPrizeSpawnSeconds) {
+          this.spawnPrizeTimer -= this.nextPrizeSpawnSeconds;
+          this.spawnPrize();
+
+          const diff = Phaser.Math.Clamp(this.distance / 800, 0, 1);
+          if (Math.random() < 0.26 + diff * 0.16) {
+            this.nextPrizeSpawnSeconds = Phaser.Math.FloatBetween(
+              Phaser.Math.Linear(2.8, 2.1, diff),
+              Phaser.Math.Linear(4.2, 3.0, diff)
+            );
+          } else {
+            this.nextPrizeSpawnSeconds = Phaser.Math.FloatBetween(
+              Phaser.Math.Linear(4.8, 3.0, diff),
+              Phaser.Math.Linear(7.6, 5.2, diff)
+            );
+          }
+        }
+      }
+
+      collectPrize(_, prize) {
+        if (!prize.active) {
+          return;
+        }
+
+        const label = prize.getData("label");
+        const value = prize.getData("value");
+        prize.destroy();
+
+        this.prizeCount += value;
+        this.distance += value * 2;
+        this.collectedPrizes.unshift(label);
+        this.collectedPrizes = this.collectedPrizes.slice(0, 4);
+        this.sfx("jump", 0.08, 1.45);
+        this.showToast(`${label} collected.`);
+      }
+
+      prettyHatName(key) {
+        const names = {
+          hat_straw: "Straw Hat",
+          hat_cap: "Blue Cap",
+          hat_bow: "Bowler",
+          hat_party: "Party Hat"
+        };
+        return names[key] || key;
       }
 
       beginCountdown() {
@@ -575,6 +821,7 @@
         o.setBodySize(key === "hay" ? 52 : 42, key === "hay" ? 40 : 48, true);
         o.setImmovable(true);
         o.setVelocityX(-this.speed);
+        o.setDepth(6);
       }
 
       updateSpawnPattern(dt) {
@@ -628,17 +875,22 @@
         }
 
         // Lose hat on death; can earn a new one next run.
-        this.hatUnlocked = false;
-        this.selectedHat = null;
-        this.choosingHat = false;
+        this.hatLevel = 0;
+        this.selectedHats = [];
+        this.choosingHatLevel = 0;
         if (this.duckHat) {
           this.duckHat.setVisible(false);
         }
+        if (this.duckHatTop) {
+          this.duckHatTop.setVisible(false);
+        }
         ui.hatPicker.style.display = "none";
+        ui.toast.style.display = "none";
 
         this.gameOver = true;
         this.gameStarted = false;
         this.obstacles.children.each((o) => o.setVelocityX(0));
+        this.prizes.children.each((p) => p.setVelocityX(0));
         this.duck.setVelocityX(0);
         this.duck.setTint(0xcf786f);
         this.sfx("hit", 0.28, 0.85);
@@ -655,19 +907,33 @@
       restartGame() {
         this.gameOver = false;
         this.gameStarted = false;
+        this.physics.world.resume();
         this.speed = this.baseSpeed;
         this.distance = 0;
         this.runSeconds = 0;
+        this.prizeCount = 0;
+        this.collectedPrizes = [];
         this.spawnTimer = 0;
         this.nextSpawnSeconds = 3.2;
         this.clusterRemaining = 0;
+        this.spawnPrizeTimer = 0;
+        this.nextPrizeSpawnSeconds = 4.4;
+        this.hatLevel = 0;
+        this.selectedHats = [];
+        this.choosingHatLevel = 0;
+        this.toastTimer = 0;
+        ui.toast.style.display = "none";
+        ui.hatPicker.style.display = "none";
 
         this.duck.clearTint();
-        this.duck.setPosition(180, this.groundY - 40);
+        this.duck.setPosition(180, this.groundY - 44);
         this.duck.setVelocity(0, 0);
         this.duck.setScale(1, 1);
+        this.duckHat.setVisible(false);
+        this.duckHatTop.setVisible(false);
 
         this.obstacles.clear(true, true);
+        this.prizes.clear(true, true);
         this.beginCountdown();
         this.updateHud();
       }
@@ -678,9 +944,23 @@
           `Duck Dash Runner`,
           `Distance: ${Math.floor(this.distance)}m`,
           `Best: ${this.best}m`,
+          `Prizes: ${this.prizeCount}`,
           `Speed: ${Math.floor(this.speed)} px/s`,
           `FPS: ${fps.toFixed(0)}`
         ].join("\n");
+
+        const prizeMarkup = [];
+        if (this.selectedHats[0]) {
+          prizeMarkup.push(`<div class="prizeChip">Hat 1: ${this.prettyHatName(this.selectedHats[0])}</div>`);
+        }
+        if (this.selectedHats[1]) {
+          prizeMarkup.push(`<div class="prizeChip">Hat 2: ${this.prettyHatName(this.selectedHats[1])}</div>`);
+        }
+        prizeMarkup.push(`<div class="prizeChip">Prize Count: ${this.prizeCount}</div>`);
+        this.collectedPrizes.forEach((name) => {
+          prizeMarkup.push(`<div class="prizeChip">${name}</div>`);
+        });
+        ui.prizes.innerHTML = prizeMarkup.join("");
       }
 
       updateSky(deltaMs) {
@@ -708,6 +988,8 @@
         this.skyTop.fillColor = Phaser.Display.Color.GetColor(top.r, top.g, top.b);
         this.skyMid.fillColor = Phaser.Display.Color.GetColor(mid.r, mid.g, mid.b);
         this.skyLow.fillColor = Phaser.Display.Color.GetColor(low.r, low.g, low.b);
+        this.sunGlow.alpha = 0.22 + dayMix * 0.22;
+        this.sunDisk.alpha = 0.72 + dayMix * 0.18;
 
         const travelSpeed = this.gameStarted && !this.gameOver && !this.countdownActive ? this.speed : this.baseSpeed * 0.45;
         this.parallaxFar.tilePositionX += (travelSpeed * 0.02) * (deltaMs / 16.666);
@@ -728,6 +1010,13 @@
 
       update(_, deltaMs) {
         const dt = deltaMs / 1000;
+
+        if (this.toastTimer > 0) {
+          this.toastTimer -= dt;
+          if (this.toastTimer <= 0) {
+            ui.toast.style.display = "none";
+          }
+        }
 
         if (Phaser.Input.Keyboard.JustDown(this.keys.jump1) || Phaser.Input.Keyboard.JustDown(this.keys.jump2) || Phaser.Input.Keyboard.JustDown(this.keys.jump3)) {
           this.tryJump();
@@ -776,7 +1065,7 @@
           return;
         }
 
-        if (this.choosingHat) {
+        if (this.choosingHatLevel) {
           this.updateHud();
           return;
         }
@@ -790,13 +1079,20 @@
         this.distance += dt * (this.speed * 0.1);
         this.runSeconds += dt;
 
-        if (!this.hatUnlocked && this.runSeconds >= 60) {
-          this.openHatPicker();
+        if (this.hatLevel < 1 && this.runSeconds >= 60) {
+          this.openHatPicker(1);
+          this.updateHud();
+          return;
+        }
+
+        if (this.hatLevel < 2 && this.runSeconds >= 120) {
+          this.openHatPicker(2);
           this.updateHud();
           return;
         }
 
         this.updateSpawnPattern(dt);
+        this.updatePrizePattern(dt);
 
         this.obstacles.children.each((o) => {
           if (!o.active) {
@@ -812,6 +1108,17 @@
           }
         });
 
+        this.prizes.children.each((p) => {
+          if (!p.active) {
+            return;
+          }
+          p.setVelocityX(-this.speed);
+          p.y += Math.sin((this.time.now + p.x) * 0.008) * 0.22;
+          if (p.x < this.cameras.main.scrollX - 240) {
+            p.destroy();
+          }
+        });
+
         const grounded = this.duck.body.blocked.down || this.duck.body.touching.down;
         if (grounded) {
           const runFrame = Math.floor(this.time.now * 0.02) % 2 === 0 ? "duck_run1" : "duck_run2";
@@ -823,12 +1130,25 @@
           this.duck.setScale(1.05, 0.9);
         }
 
-        if (this.hatUnlocked && this.selectedHat) {
+        const heightLift = Phaser.Math.Clamp((this.groundY - this.duck.y) * 0.18, 0, 18);
+        this.duckShadow.setPosition(this.duck.x + 3, this.groundY + 9);
+        this.duckShadow.setScale(1 - heightLift * 0.02, 1 - heightLift * 0.03);
+        this.duckShadow.setAlpha(0.24 - heightLift * 0.007);
+
+        if (this.selectedHats[0]) {
           this.duckHat.setVisible(true);
-          this.duckHat.setPosition(this.duck.x + 3, this.duck.y - 34);
+          this.duckHat.setPosition(this.duck.x + 4, this.duck.y - 41);
           this.duckHat.setFlipX(this.duck.flipX);
         } else {
           this.duckHat.setVisible(false);
+        }
+
+        if (this.selectedHats[1]) {
+          this.duckHatTop.setVisible(true);
+          this.duckHatTop.setPosition(this.duck.x + 4, this.duck.y - 60);
+          this.duckHatTop.setFlipX(this.duck.flipX);
+        } else {
+          this.duckHatTop.setVisible(false);
         }
 
         this.updateHud();
@@ -836,6 +1156,75 @@
     }
 
     let sceneRef = null;
+    let gameRef = null;
+
+    window.__duckDash = {
+      getState() {
+        if (!sceneRef) {
+          return null;
+        }
+        return {
+          gameStarted: sceneRef.gameStarted,
+          countdownActive: sceneRef.countdownActive,
+          gameOver: sceneRef.gameOver,
+          runSeconds: sceneRef.runSeconds,
+          hatLevel: sceneRef.hatLevel,
+          selectedHats: [...sceneRef.selectedHats],
+          prizeCount: sceneRef.prizeCount,
+          pickerVisible: ui.hatPicker.style.display !== "none",
+          toastVisible: ui.toast.style.display !== "none"
+        };
+      },
+      startNow() {
+        if (!sceneRef) {
+          return false;
+        }
+        sceneRef.countdownActive = false;
+        sceneRef.countdownTimer = 0;
+        sceneRef.countdownValue = 0;
+        sceneRef.goTimer = 0;
+        sceneRef.startRun();
+        return true;
+      },
+      forceSeconds(seconds) {
+        if (!sceneRef) {
+          return false;
+        }
+        sceneRef.runSeconds = seconds;
+        return true;
+      },
+      chooseHat(key) {
+        if (!sceneRef) {
+          return false;
+        }
+        sceneRef.applyHatChoice(key);
+        return true;
+      },
+      spawnPrizeNow() {
+        if (!sceneRef) {
+          return false;
+        }
+        sceneRef.spawnPrize();
+        return true;
+      },
+      collectFirstPrize() {
+        if (!sceneRef || !sceneRef.prizes) {
+          return false;
+        }
+        const firstPrize = sceneRef.prizes.getChildren().find((child) => child.active);
+        if (!firstPrize) {
+          return false;
+        }
+        sceneRef.collectPrize(sceneRef.duck, firstPrize);
+        return true;
+      },
+      scene() {
+        return sceneRef;
+      },
+      game() {
+        return gameRef;
+      }
+    };
 
     function startGame() {
       if (typeof Phaser === "undefined") {
@@ -864,7 +1253,7 @@
         scene: [DuckRunnerScene]
       };
 
-      new Phaser.Game(config);
+      gameRef = new Phaser.Game(config);
     }
 
     document.querySelectorAll("#hatPicker [data-hat]").forEach((btn) => {
