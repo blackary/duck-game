@@ -288,76 +288,110 @@
 
         const drawDuck = (frame) => {
           g.clear();
-          g.fillStyle(0x000000, 0.15);
-          g.fillEllipse(38, 59, 48, 10);
 
-          g.fillStyle(0x9c7327, 0.95);
-          g.fillTriangle(7, 33, 0, 27, 5, 41);
+          const bodyY = frame === "run1" ? 54 : frame === "run2" ? 52 : 48;
+          const headY = frame === "jump" ? 26 : frame === "run2" ? 28 : 30;
+          const wingAngle = frame === "run1" ? -0.38 : frame === "run2" ? 0.12 : -0.12;
+          const bodyLift = frame === "jump" ? -5 : 0;
+          const eyeRadius = frame === "jump" ? 4.2 : 5;
 
-          g.fillStyle(0xf0c54a, 1);
-          g.fillEllipse(34, 35, 53, 39);
-          g.fillStyle(0x8c6620, 0.85);
-          g.lineStyle(3, 0x8c6620, 0.78);
-          g.strokeEllipse(34, 35, 53, 39);
+          g.fillStyle(0x000000, 0.14);
+          g.fillEllipse(56, 82, 74, 12);
 
-          g.fillStyle(0xf6da7c, 1);
-          g.fillEllipse(31, 28, 36, 22);
-          g.fillStyle(0xe4b444, 0.92);
-          g.fillEllipse(37, 39, 28, 16);
-          g.fillStyle(0xffffff, 0.2);
-          g.fillEllipse(24, 23, 15, 9);
+          g.fillStyle(0x7d5c1d, 0.95);
+          g.fillTriangle(16, bodyY + 5, 1, bodyY - 8, 10, bodyY + 10);
+          g.fillTriangle(24, bodyY + 4, 10, bodyY - 10, 16, bodyY + 13);
 
-          g.fillStyle(0xf6d786, 1);
-          g.fillEllipse(58, 17, 25, 22);
-          g.lineStyle(3, 0x8c6620, 0.74);
-          g.strokeEllipse(58, 17, 25, 22);
-          g.fillStyle(0xf8e8b5, 0.96);
-          g.fillEllipse(58, 24, 15, 10);
+          g.fillStyle(0x9b7422, 1);
+          g.fillEllipse(55, bodyY + bodyLift, 76, 54);
+          g.fillStyle(0xf1c957, 1);
+          g.fillEllipse(55, bodyY - 2 + bodyLift, 72, 50);
+          g.fillStyle(0xf7df8e, 1);
+          g.fillEllipse(48, bodyY - 13 + bodyLift, 42, 25);
+          g.fillStyle(0xe2b247, 0.92);
+          g.fillEllipse(62, bodyY + 8 + bodyLift, 32, 18);
+          g.fillStyle(0xffffff, 0.22);
+          g.fillEllipse(41, bodyY - 18 + bodyLift, 20, 10);
+          g.fillStyle(0xf0b18b, 0.18);
+          g.fillEllipse(39, bodyY + 6 + bodyLift, 14, 8);
 
-          const wingAngle = frame === "run1" ? -0.38 : frame === "run2" ? 0.14 : -0.06;
           g.save();
-          g.translateCanvas(29, 35);
+          g.translateCanvas(44, bodyY + 2 + bodyLift);
           g.rotateCanvas(wingAngle);
-          g.fillStyle(0xe5b648, 1);
-          g.fillEllipse(0, 0, 20, 27);
-          g.lineStyle(2, 0xa17926, 0.62);
-          g.strokeEllipse(0, 0, 20, 27);
-          g.fillStyle(0xf4d570, 0.72);
-          g.fillEllipse(2, -5, 11, 11);
+          g.fillStyle(0xa17723, 0.96);
+          g.fillEllipse(0, 0, 28, 36);
+          g.fillStyle(0xe5b748, 1);
+          g.fillEllipse(0, -1, 24, 31);
+          g.fillStyle(0xf6d974, 0.72);
+          g.fillEllipse(2, -7, 13, 13);
           g.restore();
 
-          g.fillStyle(0x1b221b, 1);
-          g.fillCircle(62, 16, frame === "jump" ? 3.2 : 4.2);
-          g.fillStyle(0xffffff, 0.95);
-          g.fillCircle(63, 15, 1.2);
+          g.fillStyle(0xf2cb5d, 1);
+          g.fillEllipse(72, bodyY - 16 + bodyLift, 18, 24);
 
-          g.fillStyle(0xf39b48, 1);
-          g.fillTriangle(67, 21, 81, 18, 67, 14);
-          g.fillStyle(0xd97836, 1);
-          g.fillRect(68, 17, 11, 2);
+          g.fillStyle(0x9b7422, 1);
+          g.fillCircle(83, headY, 22);
+          g.fillStyle(0xf6d46d, 1);
+          g.fillCircle(83, headY - 1, 19);
+          g.fillStyle(0xf8edc2, 0.97);
+          g.fillEllipse(84, headY + 10, 18, 11);
+          g.fillStyle(0xffffff, 0.17);
+          g.fillEllipse(76, headY - 10, 13, 8);
+          g.fillStyle(0xf4bda2, 0.34);
+          g.fillCircle(73, headY + 8, 5);
 
-          const leg1Y = frame === "run2" ? 54 : 57;
-          const leg2Y = frame === "run1" ? 54 : 57;
-          g.lineStyle(3, 0xe48a38, 1);
+          g.fillStyle(0xf3c74d, 1);
+          g.fillTriangle(77, headY - 18, 71, headY - 31, 81, headY - 20);
+          g.fillTriangle(84, headY - 19, 80, headY - 30, 89, headY - 18);
+
+          g.fillStyle(0x1a2119, 1);
+          g.fillCircle(87, headY - 4, eyeRadius);
+          g.fillStyle(0xffffff, 0.98);
+          g.fillCircle(88, headY - 5, 1.5);
+          g.fillStyle(0xc88f27, 0.42);
+          g.fillEllipse(87, headY - 9, 8, 2);
+
+          g.fillStyle(0x914f23, 0.32);
+          g.lineStyle(2, 0x8a4f24, 0.28);
           g.beginPath();
-          g.moveTo(28, 46);
-          g.lineTo(26, leg1Y);
-          g.moveTo(42, 47);
-          g.lineTo(43, leg2Y);
+          g.moveTo(86, headY + 7);
+          g.lineTo(93, headY + 9);
           g.strokePath();
-          g.fillStyle(0xf0a34c, 1);
-          g.fillEllipse(24, leg1Y + 1, 12, 5);
-          g.fillEllipse(44, leg2Y + 1, 12, 5);
+
+          g.fillStyle(0xf49b4a, 1);
+          g.fillTriangle(95, headY + 3, 112, headY, 95, headY - 7);
+          g.fillStyle(0xd97838, 1);
+          g.fillRect(96, headY, 12, 2);
+          g.fillStyle(0xffc577, 0.48);
+          g.fillRect(97, headY - 4, 8, 2);
 
           if (frame === "jump") {
-            g.fillStyle(0xffffff, 0.22);
-            g.fillEllipse(40, 10, 20, 8);
+            g.lineStyle(3, 0xe58e37, 1);
+            g.beginPath();
+            g.moveTo(47, bodyY + 17);
+            g.lineTo(40, 72);
+            g.moveTo(61, bodyY + 16);
+            g.lineTo(57, 70);
+            g.strokePath();
+            g.fillStyle(0xf0a34c, 1);
+            g.fillEllipse(37, 73, 12, 5);
+            g.fillEllipse(55, 71, 12, 5);
           } else {
-            g.fillStyle(0xf7df92, 0.42);
-            g.fillEllipse(15, 39, 9, 5);
+            const leg1FootY = frame === "run1" ? 77 : 73;
+            const leg2FootY = frame === "run2" ? 77 : 73;
+            g.lineStyle(3, 0xe58e37, 1);
+            g.beginPath();
+            g.moveTo(47, bodyY + 16);
+            g.lineTo(45, leg1FootY - 3);
+            g.moveTo(61, bodyY + 15);
+            g.lineTo(62, leg2FootY - 3);
+            g.strokePath();
+            g.fillStyle(0xf0a34c, 1);
+            g.fillEllipse(43, leg1FootY, 13, 5);
+            g.fillEllipse(64, leg2FootY, 13, 5);
           }
 
-          g.generateTexture(`duck_${frame}`, 84, 64);
+          g.generateTexture(`duck_${frame}`, 116, 90);
         };
 
         drawDuck("run1");
@@ -436,78 +470,176 @@
         g.generateTexture("fencePost", 20, 110);
 
         g.clear();
-        g.fillStyle(0xffffff, 0.86);
-        g.fillCircle(24, 22, 18);
-        g.fillCircle(42, 17, 14);
-        g.fillCircle(58, 22, 17);
-        g.fillEllipse(41, 30, 80, 26);
-        g.generateTexture("cloud", 84, 50);
+        g.fillStyle(0x86adc0, 0.16);
+        g.fillEllipse(52, 44, 88, 20);
+        g.fillStyle(0xf7fbfd, 0.96);
+        g.fillCircle(28, 24, 19);
+        g.fillCircle(48, 18, 16);
+        g.fillCircle(70, 23, 18);
+        g.fillEllipse(49, 31, 88, 28);
+        g.fillStyle(0xd9edf4, 0.66);
+        g.fillEllipse(46, 34, 68, 14);
+        g.generateTexture("cloud", 104, 60);
 
-        // Repeating parallax strips for apparent forward movement.
         g.clear();
-        g.fillStyle(0x84c3df, 1);
-        g.fillRect(0, 0, 512, 220);
-        g.fillStyle(0x6da7bc, 0.85);
-        for (let i = 0; i < 9; i += 1) {
-          g.fillEllipse(i * 64 + 20, 190, 120, 70);
+        g.fillStyle(0xa6d2df, 0.32);
+        for (let i = 0; i < 7; i += 1) {
+          g.fillEllipse(i * 86 + 10, 198 - (i % 3) * 9, 180, 58);
+        }
+        g.fillStyle(0x87b8c3, 0.34);
+        for (let i = 0; i < 6; i += 1) {
+          g.fillEllipse(i * 96 + 30, 182 - (i % 2) * 7, 170, 52);
+        }
+        g.fillStyle(0x6f9fb0, 0.45);
+        for (let i = 0; i < 7; i += 1) {
+          g.fillEllipse(i * 82 + 24, 206 - (i % 2) * 8, 148, 40);
         }
         g.generateTexture("bg_far", 512, 220);
 
         g.clear();
-        g.fillStyle(0x6e9a79, 1);
-        g.fillRect(0, 0, 512, 180);
-        g.fillStyle(0x587d61, 1);
+        g.fillStyle(0x7fab7d, 0.95);
+        for (let i = 0; i < 6; i += 1) {
+          g.fillEllipse(i * 96 + 36, 170 - (i % 2) * 10, 190, 66);
+        }
+        g.fillStyle(0x58835e, 1);
         for (let i = 0; i < 12; i += 1) {
-          g.fillRect(i * 46 + 8, 46 + (i % 2) * 8, 18, 90);
-          g.fillCircle(i * 46 + 17, 38 + (i % 2) * 8, 24);
+          const x = i * 44 + 6;
+          const y = 58 + (i % 3) * 9;
+          g.fillRect(x + 10, y + 42, 8, 52);
+          g.fillCircle(x + 14, y + 16, 22);
+          g.fillCircle(x + 3, y + 26, 16);
+          g.fillCircle(x + 27, y + 26, 16);
+          g.fillStyle(0x78aa7f, 0.58);
+          g.fillCircle(x + 9, y + 11, 9);
+          g.fillStyle(0x58835e, 1);
         }
         g.generateTexture("bg_mid", 512, 180);
 
         g.clear();
-        g.fillStyle(0x5f7f48, 1);
-        g.fillRect(0, 0, 512, 120);
-        g.fillStyle(0x4f6d3c, 1);
-        g.fillRect(0, 86, 512, 34);
-        g.fillStyle(0x6f9253, 0.45);
-        g.fillRect(0, 14, 512, 22);
-        g.fillStyle(0x77985a, 0.35);
-        g.fillRect(0, 44, 512, 16);
+        g.fillStyle(0x6a8d59, 0.92);
+        g.fillRect(0, 74, 512, 46);
+        g.fillStyle(0x7ca96b, 0.78);
+        for (let i = 0; i < 26; i += 1) {
+          const x = i * 20;
+          const bladeHeight = 26 + (i % 4) * 8;
+          g.fillTriangle(x + 3, 108, x + 9, 108 - bladeHeight, x + 15, 108);
+        }
+        g.fillStyle(0xe7f3c8, 0.95);
+        for (let i = 0; i < 10; i += 1) {
+          const x = 24 + i * 52;
+          const y = 82 + (i % 3) * 7;
+          g.fillCircle(x, y, 3);
+          g.fillCircle(x + 4, y + 3, 3);
+          g.fillCircle(x - 4, y + 3, 3);
+          g.fillStyle(0xf2c05a, 1);
+          g.fillCircle(x, y + 3, 2);
+          g.fillStyle(0xe7f3c8, 0.95);
+        }
+        g.fillStyle(0x607e4a, 0.94);
+        g.fillRect(0, 106, 512, 14);
         g.generateTexture("bg_near", 512, 120);
 
         g.clear();
-        g.fillStyle(0x5d7c46, 1);
-        g.fillRect(0, 0, 512, 28);
-        g.fillStyle(0x729357, 0.75);
-        g.fillRect(0, 0, 512, 8);
-        g.fillStyle(0x67884f, 0.65);
-        for (let i = 0; i < 20; i += 1) {
-          g.fillRect(i * 28 + 4, 10, 12, 14);
+        g.fillStyle(0x775537, 1);
+        g.fillRect(0, 17, 512, 18);
+        g.fillRect(0, 40, 512, 18);
+        g.fillStyle(0x8d6848, 1);
+        for (let i = 0; i < 19; i += 1) {
+          const x = i * 28 + 6;
+          const postHeight = 44 + (i % 3) * 7;
+          g.fillRect(x, 4, 8, postHeight);
+          g.fillStyle(0xa17a57, 0.55);
+          g.fillRect(x + 2, 6, 2, postHeight - 4);
+          g.fillStyle(0x8d6848, 1);
         }
-        g.generateTexture("bg_ground_top", 512, 28);
+        g.generateTexture("bg_fence", 512, 70);
 
         g.clear();
-        g.fillStyle(0x456338, 1);
+        g.fillStyle(0x587842, 1);
+        g.fillRect(0, 0, 512, 34);
+        g.fillStyle(0x7aaa63, 0.82);
+        for (let i = 0; i < 36; i += 1) {
+          const x = i * 15;
+          g.fillTriangle(x, 31, x + 4, 7 + (i % 4), x + 10, 31);
+        }
+        g.fillStyle(0xf2ddb0, 0.92);
+        for (let i = 0; i < 8; i += 1) {
+          const x = 22 + i * 64;
+          const y = 16 + (i % 2) * 3;
+          g.fillCircle(x, y, 3);
+          g.fillCircle(x + 4, y + 3, 3);
+          g.fillCircle(x - 4, y + 3, 3);
+          g.fillStyle(0xe1a958, 1);
+          g.fillCircle(x, y + 3, 1.6);
+          g.fillStyle(0xf2ddb0, 0.92);
+        }
+        g.generateTexture("bg_ground_top", 512, 34);
+
+        g.clear();
+        g.fillStyle(0x446137, 1);
         g.fillRect(0, 0, 512, 210);
-        g.fillStyle(0x3b5630, 0.8);
-        g.fillRect(0, 40, 512, 26);
-        g.fillStyle(0x51743f, 0.42);
-        g.fillRect(0, 88, 512, 28);
+        g.fillStyle(0x35512d, 0.85);
+        g.fillRect(0, 38, 512, 28);
+        g.fillStyle(0x507542, 0.44);
+        g.fillRect(0, 84, 512, 34);
+        g.fillStyle(0x6d8e59, 0.12);
+        g.fillRect(0, 2, 512, 26);
+        g.fillStyle(0x2f4728, 0.55);
+        for (let i = 0; i < 14; i += 1) {
+          g.fillEllipse(i * 42 + 20, 144 + (i % 3) * 10, 22, 10);
+        }
         g.generateTexture("bg_ground_base", 512, 210);
 
         g.clear();
-        g.fillStyle(0x7f5238, 0.95);
-        g.fillRect(0, 48, 120, 92);
-        g.fillTriangle(0, 48, 60, 0, 120, 48);
-        g.fillStyle(0x6f4630, 1);
-        g.fillRect(42, 88, 34, 52);
-        g.fillStyle(0x8f5f43, 0.88);
-        g.fillRect(168, 62, 104, 78);
-        g.fillTriangle(160, 62, 220, 20, 280, 62);
-        g.fillStyle(0x7a4f38, 1);
-        g.fillRect(206, 100, 24, 40);
-        g.fillStyle(0x6b8a52, 0.6);
-        g.fillRect(320, 112, 192, 28);
+        g.fillStyle(0x85a86c, 0.25);
+        g.fillRect(0, 116, 512, 24);
+        g.fillStyle(0x8f5f44, 0.97);
+        g.fillRect(8, 50, 124, 80);
+        g.fillTriangle(0, 50, 70, 8, 140, 50);
+        g.fillStyle(0x6b4531, 1);
+        g.fillRect(48, 84, 30, 46);
+        g.fillStyle(0xe6d8c7, 0.85);
+        g.fillRect(90, 62, 16, 16);
+        g.fillStyle(0x9b684a, 1);
+        g.fillRect(176, 56, 110, 74);
+        g.fillTriangle(166, 56, 231, 18, 296, 56);
+        g.fillStyle(0x774d38, 1);
+        g.fillRect(219, 90, 24, 40);
+        g.fillStyle(0xe0d1b8, 0.82);
+        g.fillRect(188, 72, 14, 12);
+        g.fillRect(259, 72, 14, 12);
+        g.fillStyle(0x7c8f66, 0.74);
+        g.fillEllipse(360, 118, 90, 32);
+        g.fillStyle(0x6f8459, 0.88);
+        g.fillRect(332, 74, 16, 56);
+        g.fillCircle(340, 64, 26);
+        g.fillCircle(324, 76, 18);
+        g.fillCircle(356, 77, 18);
+        g.fillStyle(0x8b6d4c, 0.9);
+        g.fillRect(420, 30, 18, 100);
+        g.fillStyle(0xd9d1bf, 0.86);
+        g.fillRect(422, 34, 14, 74);
+        g.fillStyle(0xb44e34, 0.9);
+        g.fillEllipse(429, 28, 30, 18);
         g.generateTexture("bg_barn_strip", 512, 140);
+
+        g.clear();
+        g.fillStyle(0x6b8d58, 0.92);
+        g.fillRect(0, 28, 512, 60);
+        g.fillStyle(0x5e7d4d, 0.85);
+        for (let i = 0; i < 7; i += 1) {
+          g.fillRect(i * 84, 34 + (i % 2) * 5, 62, 46);
+        }
+        g.fillStyle(0x86a86d, 0.55);
+        for (let i = 0; i < 8; i += 1) {
+          g.fillEllipse(i * 74 + 36, 66 - (i % 2) * 7, 88, 22);
+        }
+        g.fillStyle(0x4e6b41, 0.48);
+        for (let i = 0; i < 16; i += 1) {
+          const x = i * 34;
+          g.fillTriangle(x + 4, 87, x + 10, 68, x + 18, 87);
+        }
+        g.generateTexture("bg_field_rows", 512, 88);
 
         g.clear();
         g.fillStyle(0xdbbe7d, 1);
@@ -549,20 +681,22 @@
       createWorld() {
         this.physics.world.setBounds(0, 0, this.worldWidth, this.worldHeight);
 
-        this.skyTop = this.add.rectangle(this.worldWidth / 2, 180, this.worldWidth, 360, 0x95d4ec).setScrollFactor(0.15).setDepth(-30);
-        this.skyMid = this.add.rectangle(this.worldWidth / 2, 430, this.worldWidth, 400, 0x7ebecb).setScrollFactor(0.3).setDepth(-29);
-        this.skyLow = this.add.rectangle(this.worldWidth / 2, 650, this.worldWidth, 360, 0x6aa588).setScrollFactor(0.55).setDepth(-28);
+        this.skyTop = this.add.rectangle(this.worldWidth / 2, 180, this.worldWidth, 360, 0xa2d8ea).setScrollFactor(0.15).setDepth(-30);
+        this.skyMid = this.add.rectangle(this.worldWidth / 2, 430, this.worldWidth, 400, 0x88c1c4).setScrollFactor(0.3).setDepth(-29);
+        this.skyLow = this.add.rectangle(this.worldWidth / 2, 650, this.worldWidth, 360, 0x769d78).setScrollFactor(0.55).setDepth(-28);
         this.sunGlow = this.add.circle(this.scale.width - 180, 124, 74, 0xffefb1, 0.32).setScrollFactor(0).setDepth(-27);
         this.sunDisk = this.add.circle(this.scale.width - 180, 124, 34, 0xfff4cf, 0.92).setScrollFactor(0).setDepth(-26);
+        this.horizonGlow = this.add.rectangle(this.scale.width * 0.5, 318, this.scale.width, 120, 0xffe1ad, 0.1).setScrollFactor(0).setDepth(-25);
+        this.skyShade = this.add.rectangle(this.scale.width * 0.5, 110, this.scale.width, 220, 0x72b9d6, 0.14).setScrollFactor(0).setDepth(-24);
 
         // Screen-fixed parallax layers that move continuously.
-        this.parallaxFar = this.add.tileSprite(this.scale.width * 0.5, 300, this.scale.width, 230, "bg_far")
+        this.parallaxFar = this.add.tileSprite(this.scale.width * 0.5, 288, this.scale.width, 230, "bg_far")
           .setScrollFactor(0)
           .setDepth(-20);
-        this.parallaxMid = this.add.tileSprite(this.scale.width * 0.5, 470, this.scale.width, 190, "bg_mid")
+        this.parallaxMid = this.add.tileSprite(this.scale.width * 0.5, 452, this.scale.width, 190, "bg_mid")
           .setScrollFactor(0)
           .setDepth(-19);
-        this.parallaxNear = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 42, this.scale.width, 130, "bg_near")
+        this.parallaxNear = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 76, this.scale.width, 130, "bg_near")
           .setScrollFactor(0)
           .setDepth(-18);
 
@@ -571,18 +705,26 @@
           const c = this.add.image(200 + i * 260, Phaser.Math.Between(80, 210), "cloud");
           c.setScrollFactor(0);
           c.setDepth(-17);
+          c.setScale(Phaser.Math.FloatBetween(0.88, 1.18));
+          c.setAlpha(Phaser.Math.FloatBetween(0.74, 0.94));
           this.clouds.push(c);
         }
 
-        this.barnStrip = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 120, this.scale.width, 150, "bg_barn_strip")
+        this.barnStrip = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 134, this.scale.width, 150, "bg_barn_strip")
           .setScrollFactor(0)
           .setDepth(-16);
-        this.groundTop = this.add.tileSprite(this.scale.width * 0.5, this.groundY + 2, this.scale.width, 28, "bg_ground_top")
+        this.fieldRows = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 74, this.scale.width, 88, "bg_field_rows")
+          .setScrollFactor(0)
+          .setDepth(-15.5);
+        this.fenceStrip = this.add.tileSprite(this.scale.width * 0.5, this.groundY - 24, this.scale.width, 70, "bg_fence")
           .setScrollFactor(0)
           .setDepth(-15);
-        this.groundBase = this.add.tileSprite(this.scale.width * 0.5, this.groundY + 116, this.scale.width, 210, "bg_ground_base")
+        this.groundTop = this.add.tileSprite(this.scale.width * 0.5, this.groundY + 5, this.scale.width, 34, "bg_ground_top")
           .setScrollFactor(0)
           .setDepth(-14);
+        this.groundBase = this.add.tileSprite(this.scale.width * 0.5, this.groundY + 116, this.scale.width, 210, "bg_ground_base")
+          .setScrollFactor(0)
+          .setDepth(-13);
 
         this.groundBody = this.add.rectangle(this.worldWidth / 2, this.groundY + 6, this.worldWidth, 18, 0x000000, 0.001);
         this.physics.add.existing(this.groundBody, true);
@@ -590,32 +732,38 @@
         this.scale.on("resize", (size) => {
           this.sunGlow.setPosition(size.width - 180, 124);
           this.sunDisk.setPosition(size.width - 180, 124);
-          this.parallaxFar.setSize(size.width, 230).setPosition(size.width * 0.5, 300);
-          this.parallaxMid.setSize(size.width, 190).setPosition(size.width * 0.5, 470);
-          this.parallaxNear.setSize(size.width, 130).setPosition(size.width * 0.5, this.groundY - 42);
-          this.barnStrip.setSize(size.width, 150).setPosition(size.width * 0.5, this.groundY - 120);
-          this.groundTop.setSize(size.width, 28).setPosition(size.width * 0.5, this.groundY + 2);
+          this.horizonGlow.setSize(size.width, 120).setPosition(size.width * 0.5, 318);
+          this.skyShade.setSize(size.width, 220).setPosition(size.width * 0.5, 110);
+          this.parallaxFar.setSize(size.width, 230).setPosition(size.width * 0.5, 288);
+          this.parallaxMid.setSize(size.width, 190).setPosition(size.width * 0.5, 452);
+          this.parallaxNear.setSize(size.width, 130).setPosition(size.width * 0.5, this.groundY - 76);
+          this.barnStrip.setSize(size.width, 150).setPosition(size.width * 0.5, this.groundY - 134);
+          this.fieldRows.setSize(size.width, 88).setPosition(size.width * 0.5, this.groundY - 74);
+          this.fenceStrip.setSize(size.width, 70).setPosition(size.width * 0.5, this.groundY - 24);
+          this.groundTop.setSize(size.width, 34).setPosition(size.width * 0.5, this.groundY + 5);
           this.groundBase.setSize(size.width, 210).setPosition(size.width * 0.5, this.groundY + 116);
         });
       }
 
       createDuck() {
-        this.duckShadow = this.add.ellipse(184, this.groundY + 8, 56, 16, 0x162011, 0.22).setDepth(3);
+        this.duckShadow = this.add.ellipse(184, this.groundY + 8, 68, 18, 0x162011, 0.22).setDepth(3);
+        this.duckBaseScale = 1.08;
 
-        this.duck = this.physics.add.sprite(180, this.groundY - 44, "duck_run1");
+        this.duck = this.physics.add.sprite(180, this.groundY - 50, "duck_run1");
         this.duck.setDepth(7);
+        this.duck.setScale(this.duckBaseScale);
         this.duck.setCollideWorldBounds(true);
-        this.duck.setBodySize(54, 44, true);
+        this.duck.setBodySize(58, 46, true);
         this.duck.setBounce(0);
         this.duck.setMaxVelocity(1000, 980);
 
         this.physics.add.collider(this.duck, this.groundBody);
 
-        this.duckHat = this.add.image(this.duck.x, this.duck.y - 40, "hat_straw");
+        this.duckHat = this.add.image(this.duck.x, this.duck.y - 45, "hat_straw");
         this.duckHat.setVisible(false);
         this.duckHat.setDepth(8);
 
-        this.duckHatTop = this.add.image(this.duck.x, this.duck.y - 58, "hat_cap");
+        this.duckHatTop = this.add.image(this.duck.x, this.duck.y - 68, "hat_cap");
         this.duckHatTop.setVisible(false);
         this.duckHatTop.setScale(0.9);
         this.duckHatTop.setDepth(9);
@@ -809,7 +957,7 @@
           return;
         }
         this.duck.setVelocityY(-765);
-        this.duck.setScale(1.02, 0.94);
+        this.duck.setScale(this.duckBaseScale * 1.02, this.duckBaseScale * 0.94);
         this.sfx("jump", 0.18, 1.15 + Math.random() * 0.12);
       }
 
@@ -926,9 +1074,9 @@
         ui.hatPicker.style.display = "none";
 
         this.duck.clearTint();
-        this.duck.setPosition(180, this.groundY - 44);
+        this.duck.setPosition(180, this.groundY - 50);
         this.duck.setVelocity(0, 0);
-        this.duck.setScale(1, 1);
+        this.duck.setScale(this.duckBaseScale, this.duckBaseScale);
         this.duckHat.setVisible(false);
         this.duckHatTop.setVisible(false);
 
@@ -990,17 +1138,21 @@
         this.skyLow.fillColor = Phaser.Display.Color.GetColor(low.r, low.g, low.b);
         this.sunGlow.alpha = 0.22 + dayMix * 0.22;
         this.sunDisk.alpha = 0.72 + dayMix * 0.18;
+        this.horizonGlow.alpha = 0.07 + dayMix * 0.08;
+        this.skyShade.alpha = 0.09 + (1 - dayMix) * 0.06;
 
         const travelSpeed = this.gameStarted && !this.gameOver && !this.countdownActive ? this.speed : this.baseSpeed * 0.45;
-        this.parallaxFar.tilePositionX += (travelSpeed * 0.02) * (deltaMs / 16.666);
-        this.parallaxMid.tilePositionX += (travelSpeed * 0.036) * (deltaMs / 16.666);
-        this.parallaxNear.tilePositionX += (travelSpeed * 0.06) * (deltaMs / 16.666);
-        this.barnStrip.tilePositionX += (travelSpeed * 0.028) * (deltaMs / 16.666);
-        this.groundTop.tilePositionX += (travelSpeed * 0.085) * (deltaMs / 16.666);
-        this.groundBase.tilePositionX += (travelSpeed * 0.05) * (deltaMs / 16.666);
+        this.parallaxFar.tilePositionX += (travelSpeed * 0.018) * (deltaMs / 16.666);
+        this.parallaxMid.tilePositionX += (travelSpeed * 0.03) * (deltaMs / 16.666);
+        this.parallaxNear.tilePositionX += (travelSpeed * 0.05) * (deltaMs / 16.666);
+        this.barnStrip.tilePositionX += (travelSpeed * 0.038) * (deltaMs / 16.666);
+        this.fieldRows.tilePositionX += (travelSpeed * 0.056) * (deltaMs / 16.666);
+        this.fenceStrip.tilePositionX += (travelSpeed * 0.088) * (deltaMs / 16.666);
+        this.groundTop.tilePositionX += (travelSpeed * 0.11) * (deltaMs / 16.666);
+        this.groundBase.tilePositionX += (travelSpeed * 0.062) * (deltaMs / 16.666);
 
         this.clouds.forEach((c, idx) => {
-          c.x -= (0.05 + idx * 0.008) * deltaMs;
+          c.x -= (0.042 + idx * 0.007) * deltaMs;
           if (c.x < -120) {
             c.x = this.scale.width + 120;
             c.y = Phaser.Math.Between(75, 220);
@@ -1124,20 +1276,20 @@
           const runFrame = Math.floor(this.time.now * 0.02) % 2 === 0 ? "duck_run1" : "duck_run2";
           this.duck.setTexture(runFrame);
           const squash = 1 + Math.sin(this.time.now * 0.025) * 0.018;
-          this.duck.setScale(squash, 1 / squash);
+          this.duck.setScale(this.duckBaseScale * squash, this.duckBaseScale * (1 / squash));
         } else {
           this.duck.setTexture("duck_jump");
-          this.duck.setScale(1.05, 0.9);
+          this.duck.setScale(this.duckBaseScale * 1.05, this.duckBaseScale * 0.9);
         }
 
         const heightLift = Phaser.Math.Clamp((this.groundY - this.duck.y) * 0.18, 0, 18);
-        this.duckShadow.setPosition(this.duck.x + 3, this.groundY + 9);
+        this.duckShadow.setPosition(this.duck.x + 4, this.groundY + 9);
         this.duckShadow.setScale(1 - heightLift * 0.02, 1 - heightLift * 0.03);
         this.duckShadow.setAlpha(0.24 - heightLift * 0.007);
 
         if (this.selectedHats[0]) {
           this.duckHat.setVisible(true);
-          this.duckHat.setPosition(this.duck.x + 4, this.duck.y - 41);
+          this.duckHat.setPosition(this.duck.x + 8, this.duck.y - 48);
           this.duckHat.setFlipX(this.duck.flipX);
         } else {
           this.duckHat.setVisible(false);
@@ -1145,7 +1297,7 @@
 
         if (this.selectedHats[1]) {
           this.duckHatTop.setVisible(true);
-          this.duckHatTop.setPosition(this.duck.x + 4, this.duck.y - 60);
+          this.duckHatTop.setPosition(this.duck.x + 8, this.duck.y - 69);
           this.duckHatTop.setFlipX(this.duck.flipX);
         } else {
           this.duckHatTop.setVisible(false);
