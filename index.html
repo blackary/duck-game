@@ -1175,6 +1175,10 @@
         this.toastTimer = duration;
       }
 
+      getSpawnX(offset = 180) {
+        return this.cameras.main.scrollX + this.scale.width + offset;
+      }
+
       openHatPicker(level) {
         if (this.choosingHatLevel || this.gameOver) {
           return;
@@ -1223,7 +1227,7 @@
         ];
         const def = Phaser.Utils.Array.GetRandom(prizeDefs);
         const prize = this.prizes.create(
-          this.duck.x + 940,
+          this.getSpawnX(190),
           this.groundY - Phaser.Math.Between(80, 158),
           def.key
         );
@@ -1466,7 +1470,7 @@
         };
 
         const def = defs[spec.key];
-        const o = this.obstacles.create(this.duck.x + 940, def.y, spec.key);
+        const o = this.obstacles.create(this.getSpawnX(210), def.y, spec.key);
         o.setData("passed", false);
         o.setData("air", def.lane === "air");
         o.setData("baseY", def.y);
@@ -1859,7 +1863,7 @@
 
         if (this.selectedHats[0]) {
           this.duckHat.setVisible(true);
-          this.duckHat.setPosition(this.duck.x + 8, this.duck.y - 48);
+          this.duckHat.setPosition(this.duck.x + 18, this.duck.y - 48);
           this.duckHat.setFlipX(this.duck.flipX);
         } else {
           this.duckHat.setVisible(false);
@@ -1867,7 +1871,7 @@
 
         if (this.selectedHats[1]) {
           this.duckHatTop.setVisible(true);
-          this.duckHatTop.setPosition(this.duck.x + 8, this.duck.y - 69);
+          this.duckHatTop.setPosition(this.duck.x + 18, this.duck.y - 69);
           this.duckHatTop.setFlipX(this.duck.flipX);
         } else {
           this.duckHatTop.setVisible(false);

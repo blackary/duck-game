@@ -87,3 +87,36 @@ test("debug hat mode uses 10s and 20s reward thresholds", async ({ page }) => {
     return state.hatLevel === 2 && state.selectedHats[0] === "hat_straw" && state.selectedHats[1] === "hat_party";
   });
 });
+
+test("hats sit to the right on the duck and spawned items start off the visible right edge", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4381/index.html");
+  await page.getByRole("button", { name: "Start Runner" }).click();
+
+  await page.waitForFunction(() => window.__duckDash && window.__duckDash.getState() !== null);
+  await page.evaluate(() => {
+    window.__duckDash.startNow();
+    const scene = window.__duckDash.scene();
+    scene.spawnPrize();
+    scene.spawnObstacle({ key: "crate" });
+    scene.openHatPicker(1);
+    scene.applyHatChoice("hat_straw");
+  });
+  await page.waitForFunction(() => window.__duckDash.scene().duckHat.x > window.__duckDash.scene().duck.x);
+
+  const placement = await page.evaluate(() => {
+    const scene = window.__duckDash.scene();
+    const obstacle = scene.obstacles.getChildren().find((child) => child.active);
+    const prize = scene.prizes.getChildren().find((child) => child.active);
+    return {
+      rightEdge: scene.cameras.main.scrollX + scene.scale.width,
+      obstacleX: obstacle.x,
+      prizeX: prize.x,
+      duckX: scene.duck.x,
+      hatX: scene.duckHat.x
+    };
+  });
+
+  expect(placement.obstacleX).toBeGreaterThan(placement.rightEdge);
+  expect(placement.prizeX).toBeGreaterThan(placement.rightEdge);
+  expect(placement.hatX).toBeGreaterThan(placement.duckX);
+});
