@@ -181,6 +181,24 @@
       width: 100%;
     }
 
+    .toggleRow {
+      margin-top: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.92rem;
+      color: #d9ebe8;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .toggleRow input {
+      width: 18px;
+      height: 18px;
+      accent-color: #e3be64;
+      cursor: pointer;
+    }
+
     #mobileControls {
       position: fixed;
       right: var(--safe-right);
@@ -322,6 +340,10 @@
         Jump with <strong>Space</strong>, <strong>W</strong>, <strong>Up Arrow</strong>, mouse click, or tap.<br>
         Speed ramps up over time. Survive as long as possible.
       </div>
+      <label class="toggleRow">
+        <input type="checkbox" id="debugFastHats">
+        Debug hats at 10s / 20s
+      </label>
       <button id="startBtn">Start Runner</button>
     </div>
   </div>
@@ -361,6 +383,7 @@
       toast: document.getElementById("toast"),
       prizes: document.getElementById("prizes"),
       jumpBtn: document.getElementById("jumpBtn"),
+      debugFastHats: document.getElementById("debugFastHats"),
       startBtn: document.getElementById("startBtn"),
       hatPicker: document.getElementById("hatPicker"),
       hatTitle: document.getElementById("hatTitle"),
@@ -387,6 +410,7 @@
         this.countdownTimer = 0;
         this.goTimer = 0;
         this.runSeconds = 0;
+        this.debugFastHats = false;
         this.choosingHatLevel = 0;
         this.hatLevel = 0;
         this.selectedHats = [];
@@ -418,6 +442,10 @@
 
       isCompactLayout() {
         return window.innerWidth <= 720 || window.innerHeight <= 560;
+      }
+
+      getHatMilestones() {
+        return this.debugFastHats ? { first: 10, second: 20 } : { first: 60, second: 120 };
       }
 
       createTextures() {
@@ -1117,6 +1145,7 @@
 
       create() {
         sceneRef = this;
+        this.debugFastHats = Boolean(ui.debugFastHats.checked);
         this.createTextures();
         this.createWorld();
         this.createDuck();
@@ -1150,10 +1179,12 @@
         if (this.choosingHatLevel || this.gameOver) {
           return;
         }
+        const milestones = this.getHatMilestones();
+        const targetSeconds = level === 1 ? milestones.first : milestones.second;
         this.choosingHatLevel = level;
         this.gameStarted = false;
         this.physics.world.pause();
-        ui.hatTitle.textContent = level === 1 ? "1 Minute Reward" : "2 Minute Reward";
+        ui.hatTitle.textContent = `${targetSeconds} Second Reward`;
         ui.hatDesc.textContent = level === 1
           ? "Pick the first hat for your duck, then the run continues."
           : "Stack a second hat on top. Pick one and keep running.";
@@ -1553,10 +1584,11 @@
           ].join("\n");
         } else {
           ui.top.textContent = [
-            `Duck Dash Runner`,
+            `Duck Dash Runner${this.debugFastHats ? " [DEBUG]" : ""}`,
             `Distance: ${Math.floor(this.distance)}m`,
             `Best: ${this.best}m`,
             `Prizes: ${this.prizeCount}`,
+            `Hats: ${this.getHatMilestones().first}s / ${this.getHatMilestones().second}s`,
             `Speed: ${Math.floor(this.speed)} px/s`,
             `FPS: ${fps.toFixed(0)}`
           ].join("\n");
@@ -1758,13 +1790,15 @@
         this.distance += dt * (this.speed * 0.1);
         this.runSeconds += dt;
 
-        if (this.hatLevel < 1 && this.runSeconds >= 60) {
+        const hatMilestones = this.getHatMilestones();
+
+        if (this.hatLevel < 1 && this.runSeconds >= hatMilestones.first) {
           this.openHatPicker(1);
           this.updateHud();
           return;
         }
 
-        if (this.hatLevel < 2 && this.runSeconds >= 120) {
+        if (this.hatLevel < 2 && this.runSeconds >= hatMilestones.second) {
           this.openHatPicker(2);
           this.updateHud();
           return;
@@ -1856,6 +1890,7 @@
           countdownActive: sceneRef.countdownActive,
           gameOver: sceneRef.gameOver,
           runSeconds: sceneRef.runSeconds,
+          debugFastHats: sceneRef.debugFastHats,
           hatLevel: sceneRef.hatLevel,
           selectedHats: [...sceneRef.selectedHats],
           prizeCount: sceneRef.prizeCount,

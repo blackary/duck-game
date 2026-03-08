@@ -62,3 +62,28 @@ test("runner uses mobile-friendly controls and compact HUD on a phone viewport",
 
   await context.close();
 });
+
+test("debug hat mode uses 10s and 20s reward thresholds", async ({ page }) => {
+  await page.goto("http://127.0.0.1:4381/index.html");
+  await page.getByLabel("Debug hats at 10s / 20s").check();
+  await page.getByRole("button", { name: "Start Runner" }).click();
+
+  await page.waitForFunction(() => window.__duckDash && window.__duckDash.getState() !== null);
+  await page.waitForFunction(() => window.__duckDash.getState().debugFastHats === true);
+  await page.evaluate(() => window.__duckDash.startNow());
+
+  await page.evaluate(() => window.__duckDash.forceSeconds(10));
+  await page.waitForFunction(() => window.__duckDash.getState().pickerVisible === true);
+  await expect(page.locator("#hatTitle")).toContainText("10 Second Reward");
+  await page.getByRole("button", { name: "Straw Hat" }).click();
+
+  await page.evaluate(() => window.__duckDash.forceSeconds(20));
+  await page.waitForFunction(() => window.__duckDash.getState().pickerVisible === true);
+  await expect(page.locator("#hatTitle")).toContainText("20 Second Reward");
+  await page.getByRole("button", { name: "Party Hat" }).click();
+
+  await page.waitForFunction(() => {
+    const state = window.__duckDash.getState();
+    return state.hatLevel === 2 && state.selectedHats[0] === "hat_straw" && state.selectedHats[1] === "hat_party";
+  });
+});
