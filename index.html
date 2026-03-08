@@ -444,8 +444,23 @@
         return window.innerWidth <= 720 || window.innerHeight <= 560;
       }
 
-      getHatMilestones() {
-        return this.debugFastHats ? { first: 10, second: 20 } : { first: 60, second: 120 };
+      getHatIntervalSeconds() {
+        return this.debugFastHats ? 10 : 60;
+      }
+
+      getHatMilestone(level) {
+        return this.getHatIntervalSeconds() * level;
+      }
+
+      formatHatRewardTitle(level) {
+        if (this.debugFastHats) {
+          return `${this.getHatMilestone(level)} Second Reward`;
+        }
+        return `${level} Minute Reward`;
+      }
+
+      getNextHatMilestone() {
+        return this.getHatMilestone(this.hatLevel + 1);
       }
 
       createTextures() {
@@ -1088,14 +1103,53 @@
 
         this.physics.add.collider(this.duck, this.groundBody);
 
-        this.duckHat = this.add.image(this.duck.x, this.duck.y - 45, "hat_straw");
-        this.duckHat.setVisible(false);
-        this.duckHat.setDepth(8);
+        this.hatSprites = [];
+        this.ensureHatSprite(0);
+        this.ensureHatSprite(1);
+      }
 
-        this.duckHatTop = this.add.image(this.duck.x, this.duck.y - 68, "hat_cap");
-        this.duckHatTop.setVisible(false);
-        this.duckHatTop.setScale(0.9);
-        this.duckHatTop.setDepth(9);
+      ensureHatSprite(index) {
+        if (this.hatSprites[index]) {
+          return this.hatSprites[index];
+        }
+
+        const sprite = this.add.image(this.duck.x, this.duck.y - 45, "hat_straw");
+        sprite.setVisible(false);
+        sprite.setDepth(8 + index);
+        this.hatSprites[index] = sprite;
+
+        if (index === 0) {
+          this.duckHat = sprite;
+        }
+        if (index === 1) {
+          this.duckHatTop = sprite;
+        }
+
+        return sprite;
+      }
+
+      syncHatSprites() {
+        const baseX = this.duck.x + 26;
+        const baseY = this.duck.y - 47;
+
+        this.hatSprites.forEach((sprite, index) => {
+          const key = this.selectedHats[index];
+          if (!key) {
+            sprite.setVisible(false);
+            return;
+          }
+
+          const xOffset = baseX + Math.min(index, 4) * 1.5;
+          const yOffset = baseY - index * 17;
+          const scale = Math.max(0.72, 1 - index * 0.05);
+
+          sprite.setVisible(true);
+          sprite.setTexture(key);
+          sprite.setPosition(xOffset, yOffset);
+          sprite.setScale(scale);
+          sprite.setFlipX(this.duck.flipX);
+          sprite.setDepth(8 + index);
+        });
       }
 
       createObstacles() {
@@ -1183,15 +1237,13 @@
         if (this.choosingHatLevel || this.gameOver) {
           return;
         }
-        const milestones = this.getHatMilestones();
-        const targetSeconds = level === 1 ? milestones.first : milestones.second;
         this.choosingHatLevel = level;
         this.gameStarted = false;
         this.physics.world.pause();
-        ui.hatTitle.textContent = `${targetSeconds} Second Reward`;
+        ui.hatTitle.textContent = this.formatHatRewardTitle(level);
         ui.hatDesc.textContent = level === 1
           ? "Pick the first hat for your duck, then the run continues."
-          : "Stack a second hat on top. Pick one and keep running.";
+          : "Pick another hat and stack it on the duck.";
         ui.hatPicker.style.display = "grid";
       }
 
@@ -1201,22 +1253,15 @@
         }
 
         const slot = this.choosingHatLevel - 1;
+        this.ensureHatSprite(slot);
         this.selectedHats[slot] = key;
         this.hatLevel = Math.max(this.hatLevel, this.choosingHatLevel);
         this.choosingHatLevel = 0;
-
-        this.duckHat.setVisible(Boolean(this.selectedHats[0]));
-        if (this.selectedHats[0]) {
-          this.duckHat.setTexture(this.selectedHats[0]);
-        }
-        this.duckHatTop.setVisible(Boolean(this.selectedHats[1]));
-        if (this.selectedHats[1]) {
-          this.duckHatTop.setTexture(this.selectedHats[1]);
-        }
+        this.syncHatSprites();
         ui.hatPicker.style.display = "none";
         this.physics.world.resume();
         this.gameStarted = true;
-        this.showToast(slot === 0 ? "First hat equipped." : "Second hat stacked.");
+        this.showToast(slot === 0 ? "First hat equipped." : `Hat ${slot + 1} stacked.`);
       }
 
       spawnPrize() {
@@ -1517,11 +1562,8 @@
         this.hatLevel = 0;
         this.selectedHats = [];
         this.choosingHatLevel = 0;
-        if (this.duckHat) {
-          this.duckHat.setVisible(false);
-        }
-        if (this.duckHatTop) {
-          this.duckHatTop.setVisible(false);
+        if (this.hatSprites) {
+          this.hatSprites.forEach((sprite) => sprite.setVisible(false));
         }
         ui.hatPicker.style.display = "none";
         ui.toast.style.display = "none";
@@ -1568,8 +1610,9 @@
         this.duck.setPosition(180, this.groundY - 50);
         this.duck.setVelocity(0, 0);
         this.duck.setScale(this.duckBaseScale, this.duckBaseScale);
-        this.duckHat.setVisible(false);
-        this.duckHatTop.setVisible(false);
+        if (this.hatSprites) {
+          this.hatSprites.forEach((sprite) => sprite.setVisible(false));
+        }
 
         this.obstacles.clear(true, true);
         this.prizes.clear(true, true);
@@ -1592,7 +1635,7 @@
             `Distance: ${Math.floor(this.distance)}m`,
             `Best: ${this.best}m`,
             `Prizes: ${this.prizeCount}`,
-            `Hats: ${this.getHatMilestones().first}s / ${this.getHatMilestones().second}s`,
+            `Next Hat: ${this.getNextHatMilestone()}s`,
             `Speed: ${Math.floor(this.speed)} px/s`,
             `FPS: ${fps.toFixed(0)}`
           ].join("\n");
@@ -1601,11 +1644,13 @@
         ui.jumpBtn.textContent = this.gameOver ? "RETRY" : "JUMP";
 
         const prizeMarkup = [];
-        if (this.selectedHats[0]) {
-          prizeMarkup.push(`<div class="prizeChip">${compact ? this.prettyHatName(this.selectedHats[0]) : `Hat 1: ${this.prettyHatName(this.selectedHats[0])}`}</div>`);
-        }
-        if (this.selectedHats[1]) {
-          prizeMarkup.push(`<div class="prizeChip">${compact ? this.prettyHatName(this.selectedHats[1]) : `Hat 2: ${this.prettyHatName(this.selectedHats[1])}`}</div>`);
+        const shownHats = compact ? this.selectedHats.slice(-2) : this.selectedHats.slice(0, 4);
+        shownHats.forEach((hatKey, idx) => {
+          const hatIndex = compact ? this.selectedHats.length - shownHats.length + idx + 1 : idx + 1;
+          prizeMarkup.push(`<div class="prizeChip">${compact ? this.prettyHatName(hatKey) : `Hat ${hatIndex}: ${this.prettyHatName(hatKey)}`}</div>`);
+        });
+        if (this.selectedHats.length > shownHats.length) {
+          prizeMarkup.push(`<div class="prizeChip">+${this.selectedHats.length - shownHats.length} more hats</div>`);
         }
         prizeMarkup.push(`<div class="prizeChip">${compact ? `Prizes ${this.prizeCount}` : `Prize Count: ${this.prizeCount}`}</div>`);
         const recentPrizes = compact ? this.collectedPrizes.slice(0, 2) : this.collectedPrizes;
@@ -1794,16 +1839,9 @@
         this.distance += dt * (this.speed * 0.1);
         this.runSeconds += dt;
 
-        const hatMilestones = this.getHatMilestones();
-
-        if (this.hatLevel < 1 && this.runSeconds >= hatMilestones.first) {
-          this.openHatPicker(1);
-          this.updateHud();
-          return;
-        }
-
-        if (this.hatLevel < 2 && this.runSeconds >= hatMilestones.second) {
-          this.openHatPicker(2);
+        const nextHatLevel = this.hatLevel + 1;
+        if (this.runSeconds >= this.getHatMilestone(nextHatLevel)) {
+          this.openHatPicker(nextHatLevel);
           this.updateHud();
           return;
         }
@@ -1861,21 +1899,7 @@
         this.duckShadow.setScale(1 - heightLift * 0.02, 1 - heightLift * 0.03);
         this.duckShadow.setAlpha(0.24 - heightLift * 0.007);
 
-        if (this.selectedHats[0]) {
-          this.duckHat.setVisible(true);
-          this.duckHat.setPosition(this.duck.x + 18, this.duck.y - 48);
-          this.duckHat.setFlipX(this.duck.flipX);
-        } else {
-          this.duckHat.setVisible(false);
-        }
-
-        if (this.selectedHats[1]) {
-          this.duckHatTop.setVisible(true);
-          this.duckHatTop.setPosition(this.duck.x + 18, this.duck.y - 69);
-          this.duckHatTop.setFlipX(this.duck.flipX);
-        } else {
-          this.duckHatTop.setVisible(false);
-        }
+        this.syncHatSprites();
 
         this.updateHud();
       }
